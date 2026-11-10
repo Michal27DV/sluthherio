@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Slutter.io - Multiplayer Penis Battle Royale</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@700;900&display=swap" rel="stylesheet">
+  <!-- PeerJS for direct zero-setup WebRTC multiplayer -->
+  <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+</head>
+<body>
+  <div id="game-container">
+    <canvas id="gameCanvas"></canvas>
+
+    <!-- Hud Overlay -->
+    <div id="hud" class="hidden">
+      <!-- Single Player Score -->
+      <div id="score-box" class="score-container">
+        <span class="label">Délka:</span>
+        <span id="score-val">10 cm</span>
+      </div>
+
+      <!-- 2-Player Local Scores -->
+      <div id="scores-2p" class="hidden">
+        <div id="score-p1" class="score-badge p1-badge">
+          <span class="p-name" id="p1-hud-name">Hráč 1:</span>
+          <span class="p-cm" id="p1-cm">10 cm</span>
+        </div>
+        <div id="score-p2" class="score-badge p2-badge">
+          <span class="p-name" id="p2-hud-name">Hráč 2:</span>
+          <span class="p-cm" id="p2-cm">10 cm</span>
+        </div>
+      </div>
+
+      <div id="leaderboard">
+        <div class="lb-title">🏆 Žebříček největších</div>
+        <ol id="lb-list"></ol>
+      </div>
+
+      <div id="minimap-container">
+        <canvas id="minimapCanvas" width="140" height="140"></canvas>
+      </div>
+
+      <div id="sound-btn" title="Přepnout zvuk">🔊</div>
+      <div id="room-info" class="hidden"></div>
+    </div>
+
+    <!-- Start / Mode Selection Menu -->
+    <div id="menu-overlay">
+      <div class="menu-card">
+        <div class="logo-title">
+          <span class="logo-slutter">SLUTTER</span><span class="logo-io">.IO</span>
+        </div>
+        <p class="tagline">Slither.io, ale místo hadů jsou to pořádní mackové!</p>
+
+        <!-- Mode Tabs -->
+        <div class="mode-tabs">
+          <button class="mode-tab active" data-mode="solo">👤 Sólo</button>
+          <button class="mode-tab" data-mode="local2p">👥 2 Hráči (1 PC)</button>
+          <button class="mode-tab" data-mode="online">🌐 Online</button>
+        </div>
+
+        <!-- TAB 1: SOLO -->
+        <div id="tab-solo" class="tab-content">
+          <div class="input-group">
+            <input type="text" id="solo-nick" placeholder="Tvoje přezdívka" maxlength="16" value="MegaKláda">
+          </div>
+          <div class="skin-selector">
+            <label>Výběr stylu / kůže:</label>
+            <div class="skin-options" id="solo-skins"></div>
+          </div>
+          <button id="start-solo-btn" class="primary-btn">HRÁT SÓLO</button>
+          <div class="instructions">
+            <div>🕹️ <b>Ovládání:</b> Myš = Směr | Klik / Mezerník = Zrychlení</div>
+            <div>⚠️ <b>Pravidlo:</b> Nenaraž žaludem do těla ostatních!</div>
+          </div>
+        </div>
+
+        <!-- TAB 2: LOCAL 2 PLAYERS (1 PC) -->
+        <div id="tab-local2p" class="tab-content hidden">
+          <div class="split-players-config">
+            <div class="player-config-box">
+              <h4>🥒 Hráč 1 (Myš)</h4>
+              <input type="text" id="p1-nick" placeholder="Jméno Hráče 1" maxlength="12" value="Macko 1">
+              <div class="skin-options compact" id="p1-skins"></div>
+              <small>Ovládání: Myš + Levé tlačítko</small>
+            </div>
+            <div class="player-config-box">
+              <h4>🍆 Hráč 2 (Klávesnice)</h4>
+              <input type="text" id="p2-nick" placeholder="Jméno Hráče 2" maxlength="12" value="Macko 2">
+              <div class="skin-options compact" id="p2-skins"></div>
+              <small>Ovládání: WASD + Mezerník</small>
+            </div>
+          </div>
+          <button id="start-local2p-btn" class="primary-btn">SPUSTIT BITVU VE DVOU!</button>
+          <div class="instructions">
+            <div>🎮 <b>Hrajete spolu na jedné obrazovce!</b></div>
+            <div>Hráč 1 řídí myší, Hráč 2 klávesami <b>W, A, S, D</b> a <b>Mezerníkem</b> boostuje.</div>
+          </div>
+        </div>
+
+        <!-- TAB 3: ONLINE MULTIPLAYER -->
+        <div id="tab-online" class="tab-content hidden">
+          <div class="input-group">
+            <input type="text" id="online-nick" placeholder="Tvoje přezdívka" maxlength="16" value="OnlineBorec">
+          </div>
+          <div class="skin-selector">
+            <label>Tvůj skin:</label>
+            <div class="skin-options" id="online-skins"></div>
+          </div>
+
+          <div class="online-actions">
+            <!-- Host Panel -->
+            <div class="online-box">
+              <h4>👑 Založit novou hru (Host)</h4>
+              <button id="host-btn" class="secondary-btn">Vytvořit kód místnosti</button>
+              <div id="host-room-info" class="room-display hidden">
+                <div class="room-code-label">TENTO KÓD POŠLI KAMARÁDOVI:</div>
+                <div class="room-code-badge" id="host-code-val">----</div>
+                <button id="copy-link-btn" class="mini-btn">📋 Kopírovat odkaz pro kamaráda</button>
+                <div id="host-status" class="waiting-spinner">⏳ Čekám na připojení kamaráda...</div>
+              </div>
+            </div>
+
+            <!-- Join Panel -->
+            <div class="online-box">
+              <h4>🚀 Připojit se ke kamarádovi</h4>
+              <input type="text" id="join-code-input" placeholder="Zadej 4-místný kód (např. 4821)" maxlength="16">
+              <button id="join-btn" class="secondary-btn join-color">Připojit se</button>
+              <div id="join-status" class="status-msg hidden"></div>
+            </div>
+          </div>
+
+          <div class="instructions">
+            <div>💡 <b>Tip pro hraní na stejné Wi-Fi:</b> Pokud jste na stejné Wi-Fi síti, stačí v terminálu spustit <code>python3 server.py</code> a otevřít vypsanou IP adresu.</div>
+            <div>🌐 <b>Hraní přes internet:</b> Zadejte stejný 4-místný kód z různých počítačů.</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Game Over Screen -->
+    <div id="gameover-overlay" class="hidden">
+      <div class="menu-card gameover-card">
+        <h2 id="gameover-title">💥 SKONČIL JSI OCHABNUTÝ!</h2>
+        <p id="gameover-subtitle">Byl jsi zlomen v boji titánů.</p>
+        <div class="final-score-box">
+          <span id="final-score-label">Konečná délka:</span>
+          <span id="final-score">0 cm</span>
+        </div>
+        <button id="restart-btn" class="primary-btn">ZKUSIT ZNOVU</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="game.js"></script>
+</body>
+</html>
