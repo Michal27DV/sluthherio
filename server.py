@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-SLUTTER.IO - Dedikovaný MMO Server (Společný svět pro všechny reálné hráče bez botů)
+SLUTTER.IO - Dedikovaný MMO Server s Delta Time (dt)
 Spuštění: python3 server.py
 """
 
@@ -21,8 +21,8 @@ import random
 PORT = int(os.environ.get('PORT', 8000))
 WORLD_RADIUS = 2800
 BASE_RADIUS = 16
-BASE_SPEED = 3.8
-BOOST_SPEED = 7.4
+BASE_SPEED = 230.0  # units per second
+BOOST_SPEED = 450.0 # units per second
 INITIAL_SCORE = 15
 MAX_FOOD = 750
 
@@ -118,7 +118,7 @@ def ws_send_text(sock, text):
     except Exception:
         return False
 
-# --- Game Physics & World Simulation ---
+# --- Game Entities with Delta Time ---
 class ServerFood:
     __slots__ = ('x', 'y', 'value', 'is_sperm', 'color')
     def __init__(self, x, y, value=1.0, is_sperm=False, color=None):
@@ -134,9 +134,7 @@ class ServerPlayer:
         self.name = (name or f"Hráč {pid}")[:14]
         self.skin_idx = int(skin_idx) if isinstance(skin_idx, (int, float)) else 0
         self.sock = sock
-        self.lock = threading.Lock()
 
-        # Spawn at random safe location
         angle = random.uniform(0, math.pi * 2)
         dist = math.sqrt(random.uniform(0, 0.75)) * (WORLD_RADIUS - 400)
         self.x = math.cos(angle) * dist
@@ -147,7 +145,7 @@ class ServerPlayer:
         self.score = INITIAL_SCORE
         self.is_boosting = False
         self.dead = False
-        self.boost_timer = 0
+        self.boost_timer = 0.0
 
         self.segments = [[self.x, self.y]]
         self.history = [[self.x, self.y]]
@@ -162,7 +160,7 @@ class ServerPlayer:
         self.score = INITIAL_SCORE
         self.is_boosting = False
         self.dead = False
-        self.boost_timer = 0
+        self.boost_timer = 0.0
         self.segments = [[self.x, self.y]]
         self.history = [[self.x, self.y]]
 
@@ -172,20 +170,25 @@ class ServerPlayer:
     def get_target_length(self):
         return int(12 + self.score * 0.65)
 
-    def update_movement(self, new_foods):
+    def update_movement(self, dt, new_foods):
         if self.dead:
             return
 
         rad = self.get_radius()
         speed = BOOST_SPEED if (self.is_boosting and self.score > 8) else BASE_SPEED
 
-        # Turn towards target_angle
+        # Delta-time based smooth steering (approx 5.5 radians/sec max turn rate)
         diff = (self.target_angle - self.angle + math.pi) % (math.pi * 2) - math.pi
-        self.angle += diff * 0.092
+        turn_speed = 5.5 * dt
+        if abs(diff) <= turn_speed:
+            self.angle = self.target_angle
+        else:
+            self.angle += math.copysign(turn_speed, diff)
 
-        # Advance head
-        self.x += math.cos(self.angle) * speed
-        self.y += math.sin(self.angle) * speed
+        # Move head by velocity * dt
+        dist_moved = speed * dt
+        self.x += math.cos(self.angle) * dist_moved
+        self.y += math.sin(self.angle) * dist_moved
         self.history.insert(0, [self.x, self.y])
 
         target_count = self.get_target_length()
@@ -212,15 +215,16 @@ class ServerPlayer:
 
         self.segments = new_segments
 
-        # Trim history
-        max_h = (target_count + 5) * 15
+        # Clean history
+        max_h = (target_count + 5) * 20
         if len(self.history) > max_h:
             self.history = self.history[:max_h]
 
-        # Boost penalty: lose score and drop food
+        # Boost food drops timed via delta time
         if self.is_boosting and self.score > 8:
-            self.boost_timer += 1
-            if self.boost_timer % 4 == 0:
+            self.boost_timer += dt
+            if self.boost_timer >= 0.08: # Drop food ~12 times per second
+                self.boost_timer = 0.0
                 self.score -= 0.6
                 tail = self.segments[-1] if self.segments else [self.x, self.y]
                 new_foods.append(ServerFood(
@@ -257,7 +261,6 @@ class SlutterWorld:
         self.lock = threading.Lock()
         self.init_foods()
 
-        # Start game tick thread (20 Hz)
         self.running = True
         self.tick_thread = threading.Thread(target=self.game_loop, daemon=True)
         self.tick_thread.start()
@@ -293,15 +296,22 @@ class SlutterWorld:
                 del self.players[pid]
 
     def game_loop(self):
+        last_time = time.time()
         while self.running:
-            start_t = time.time()
+            now = time.time()
+            dt = now - last_time
+            last_time = now
+
+            # Clamp delta time to avoid physics explosion during large pauses
+            dt = min(max(dt, 0.001), 0.1)
+
             new_foods = []
 
             with self.lock:
-                # 1. Update player movements
+                # 1. Update player movements with exact dt
                 for p in list(self.players.values()):
                     if not p.dead:
-                        p.update_movement(new_foods)
+                        p.update_movement(dt, new_foods)
 
                 # 2. Food Eating
                 for p in self.players.values():
@@ -318,7 +328,7 @@ class SlutterWorld:
                             surviving_foods.append(f)
                     self.foods = surviving_foods
 
-                # 3. Player vs Player Head-to-Body Collisions
+                # 3. Head-to-Body Collisions
                 active_players = [p for p in self.players.values() if not p.dead]
                 for p1 in active_players:
                     if p1.dead: continue
@@ -329,7 +339,6 @@ class SlutterWorld:
                         r2 = p2.get_radius()
                         kill_sq = (r1 * 0.85 + r2 * 0.72) ** 2
 
-                        # Check p1 head vs p2 segments
                         for seg in p2.segments:
                             dx = p1.x - seg[0]
                             dy = p1.y - seg[1]
@@ -338,7 +347,7 @@ class SlutterWorld:
                                 break
                         if p1.dead: break
 
-                # Add newly dropped foods
+                # Add new foods
                 self.foods.extend(new_foods)
 
                 # Replenish foods
@@ -356,12 +365,12 @@ class SlutterWorld:
                 # Broadcast snapshot
                 self.broadcast_world()
 
-            elapsed = time.time() - start_t
-            sleep_time = max(0.005, 0.05 - elapsed)
+            elapsed = time.time() - now
+            target_frame_time = 0.045 # ~22 ticks per sec
+            sleep_time = max(0.002, target_frame_time - elapsed)
             time.sleep(sleep_time)
 
     def broadcast_world(self):
-        # Compact serialized state
         snakes_data = []
         leaderboard = []
 
@@ -381,7 +390,6 @@ class SlutterWorld:
         leaderboard.sort(key=lambda x: x[1], reverse=True)
         top_lb = leaderboard[:8]
 
-        # Compact foods list: [x, y, val, is_sperm, color]
         foods_data = [
             [round(f.x), round(f.y), round(f.value, 1), 1 if f.is_sperm else 0, f.color]
             for f in self.foods
@@ -485,13 +493,10 @@ def main():
 
     with ThreadedTCPServer(("", PORT), DualHTTPHandler) as httpd:
         print("=" * 64)
-        print("🍆 SLUTTER.IO CENTRÁLNÍ MMO SERVER JE SPUŠTĚN! 🎮")
+        print("🍆 SLUTTER.IO CENTRÁLNÍ MMO SERVER (DELTA TIME AKTIVNÍ) 🎮")
         print("=" * 64)
         print(f"👉 Lokální přístup:     http://localhost:{PORT}")
         print(f"👉 Přístup z Wi-Fi:     http://{local_ip}:{PORT}")
-        print("=" * 64)
-        print("🌍 Všichni hráči se připojují do stejného živého světa.")
-        print("   ŽÁDNÍ BOTI — pouze reální hráči!")
         print("=" * 64)
         try:
             httpd.serve_forever()

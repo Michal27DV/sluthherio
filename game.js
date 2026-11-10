@@ -1,5 +1,6 @@
 /**
  * SLUTTER.IO - Dedicated MMO Server & Solo Penis Battle Royale
+ * Fully Delta-Time (dt) Driven Simulation with Configurable FPS Limiter
  */
 
 // --- Audio Synthesizer (Web Audio API) ---
@@ -184,8 +185,8 @@ const BOT_NAMES = [
 
 const WORLD_RADIUS = 2800;
 const BASE_RADIUS = 16;
-const BASE_SPEED = 3.8;
-const BOOST_SPEED = 7.4;
+const BASE_SPEED = 230.0;
+const BOOST_SPEED = 450.0;
 const INITIAL_SCORE = 15;
 const MAX_BOTS = 22;
 const MAX_FOOD = 750;
@@ -206,7 +207,7 @@ function randRange(min, max) {
   return min + Math.random() * (max - min);
 }
 
-// --- Food Class ---
+// --- Food Class with Delta Time ---
 class Food {
   constructor(x, y, value = 1, isSperm = false, color = null) {
     this.x = x;
@@ -217,7 +218,7 @@ class Food {
     this.color = color || this.randomColor();
     this.pulse = Math.random() * Math.PI * 2;
     this.swimAngle = Math.random() * Math.PI * 2;
-    this.swimSpeed = this.isSperm ? randRange(0.6, 1.4) : 0;
+    this.swimSpeed = this.isSperm ? randRange(40, 85) : 0;
     this.tailWiggle = Math.random() * 10;
   }
 
@@ -226,13 +227,13 @@ class Food {
     return palette[Math.floor(Math.random() * palette.length)];
   }
 
-  update() {
-    this.pulse += 0.05;
+  update(dt) {
+    this.pulse += 3.2 * dt;
     if (this.isSperm) {
-      this.tailWiggle += 0.25;
-      this.x += Math.cos(this.swimAngle) * this.swimSpeed;
-      this.y += Math.sin(this.swimAngle) * this.swimSpeed;
-      this.swimAngle += (Math.random() - 0.5) * 0.1;
+      this.tailWiggle += 15.0 * dt;
+      this.x += Math.cos(this.swimAngle) * this.swimSpeed * dt;
+      this.y += Math.sin(this.swimAngle) * this.swimSpeed * dt;
+      this.swimAngle += (Math.random() - 0.5) * 5.0 * dt;
 
       const d = Math.sqrt(this.x * this.x + this.y * this.y);
       if (d > WORLD_RADIUS - 50) {
@@ -284,7 +285,7 @@ class Food {
   }
 }
 
-// --- Snake Class ---
+// --- Snake Class with Delta Time ---
 class PenisSnake {
   constructor(name, x, y, skin, isPlayer = false, playerIndex = 1) {
     this.name = name;
@@ -304,9 +305,9 @@ class PenisSnake {
     this.dead = false;
 
     this.segments = [{ x: this.x, y: this.y }];
-    this.history = [];
-    this.turnRate = 0.088;
-    this.boostTimer = 0;
+    this.history = [{ x: this.x, y: this.y }];
+    this.turnRate = 5.5;
+    this.boostTimer = 0.0;
     this.blinkTime = Math.random() * 10;
 
     this.aiWanderTimer = 0;
@@ -321,21 +322,27 @@ class PenisSnake {
     return Math.floor(12 + this.score * 0.65);
   }
 
-  update(foods, snakes) {
+  update(foods, snakes, dt) {
     if (this.dead) return;
 
     const radius = this.getRadius();
     const speed = (this.isBoosting && this.score > 8) ? BOOST_SPEED : BASE_SPEED;
 
     if (!this.isPlayer) {
-      this.updateAI(foods, snakes);
+      this.updateAI(foods, snakes, dt);
     }
 
     const angleDiff = normalizeAngle(this.targetAngle - this.angle);
-    this.angle += angleDiff * this.turnRate;
+    const maxTurn = this.turnRate * dt;
+    if (Math.abs(angleDiff) <= maxTurn) {
+      this.angle = this.targetAngle;
+    } else {
+      this.angle += Math.sign(angleDiff) * maxTurn;
+    }
 
-    this.x += Math.cos(this.angle) * speed;
-    this.y += Math.sin(this.angle) * speed;
+    const dist = speed * dt;
+    this.x += Math.cos(this.angle) * dist;
+    this.y += Math.sin(this.angle) * dist;
 
     this.history.unshift({ x: this.x, y: this.y });
 
@@ -363,14 +370,15 @@ class PenisSnake {
       historyIdx++;
     }
 
-    const maxHistoryPoints = (targetCount + 5) * 15;
+    const maxHistoryPoints = (targetCount + 5) * 20;
     if (this.history.length > maxHistoryPoints) {
       this.history.length = maxHistoryPoints;
     }
 
     if (this.isBoosting && this.score > 8) {
-      this.boostTimer++;
-      if (this.boostTimer % 4 === 0) {
+      this.boostTimer += dt;
+      if (this.boostTimer >= 0.08) {
+        this.boostTimer = 0.0;
         this.score -= 0.6;
         const tail = this.segments[this.segments.length - 1] || { x: this.x, y: this.y };
         foods.push(new Food(
@@ -383,7 +391,7 @@ class PenisSnake {
       }
     }
 
-    this.blinkTime += 0.02;
+    this.blinkTime += 1.2 * dt;
 
     const distFromCenter = Math.hypot(this.x, this.y);
     if (distFromCenter > WORLD_RADIUS) {
@@ -391,8 +399,8 @@ class PenisSnake {
     }
   }
 
-  updateAI(foods, snakes) {
-    this.aiWanderTimer--;
+  updateAI(foods, snakes, dt) {
+    this.aiWanderTimer -= dt;
     const headRadius = this.getRadius();
 
     const distToCenter = Math.hypot(this.x, this.y);
@@ -432,7 +440,7 @@ class PenisSnake {
     }
 
     if (this.aiWanderTimer <= 0 || !this.aiTarget) {
-      this.aiWanderTimer = Math.floor(randRange(20, 60));
+      this.aiWanderTimer = randRange(0.4, 1.2);
       let nearestFood = null;
       let minDistSq = 450 * 450;
 
@@ -658,7 +666,11 @@ class PenisSnake {
     ctx.font = 'bold 13px Nunito, sans-serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'bottom';
-    ctx.fillStyle = this.isPlayer ? '#06d6a0' : '#ffffff';
+    if (this.isPlayer) {
+      ctx.fillStyle = this.playerIndex === 2 ? '#ffd166' : '#06d6a0';
+    } else {
+      ctx.fillStyle = '#ffffff';
+    }
     ctx.shadowColor = '#000000';
     ctx.shadowBlur = 4;
     ctx.fillText(this.name, head.x, head.y - radius * 1.5);
@@ -685,6 +697,7 @@ class Game {
     this.p2Cm = document.getElementById('p2-cm');
     this.lbList = document.getElementById('lb-list');
     this.roomInfo = document.getElementById('room-info');
+    this.fpsBadge = document.getElementById('fps-badge');
 
     this.menuOverlay = document.getElementById('menu-overlay');
     this.gameoverOverlay = document.getElementById('gameover-overlay');
@@ -709,8 +722,18 @@ class Game {
     this.p2SkinIdx = 5;
     this.soloSkinIdx = 0;
 
+    // FPS Limiter Config
+    this.targetFps = 60; // 30, 60, 120, or 0 (uncapped)
+    this.lastRenderTime = performance.now();
+    this.lastTime = performance.now();
+
+    // FPS Counter metrics
+    this.fpsFrameCount = 0;
+    this.fpsLastSampleTime = performance.now();
+    this.currentFpsDisplay = 60;
+
     // Game state
-    this.currentMode = 'mmo'; // 'mmo' | 'local2p' | 'solo'
+    this.currentMode = 'mmo';
     this.isRunning = false;
     this.camera = { x: 0, y: 0, zoom: 1 };
     this.player1 = null;
@@ -730,13 +753,61 @@ class Game {
 
     this.initTabs();
     this.initSkinSelectors();
+    this.initFpsLimiter();
     this.bindEvents();
     this.resize();
     this.checkIfCustomServerNeeded();
   }
 
+  initFpsLimiter() {
+    const buttons = document.querySelectorAll('.fps-btn');
+    buttons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        buttons.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        this.setTargetFps(parseInt(btn.dataset.fps, 10));
+      });
+    });
+
+    if (this.fpsBadge) {
+      this.fpsBadge.addEventListener('click', () => {
+        // Toggle: 60 -> 120 -> 0 (Max) -> 30 -> 60
+        const order = [60, 120, 0, 30];
+        const nextIdx = (order.indexOf(this.targetFps) + 1) % order.length;
+        this.setTargetFps(order[nextIdx]);
+        // Update menu buttons as well
+        buttons.forEach(b => {
+          if (parseInt(b.dataset.fps, 10) === this.targetFps) b.classList.add('active');
+          else b.classList.remove('active');
+        });
+      });
+    }
+  }
+
+  setTargetFps(fps) {
+    this.targetFps = fps;
+    const label = fps === 0 ? 'Max FPS' : `${fps} FPS`;
+    if (this.fpsBadge) {
+      this.fpsBadge.textContent = label;
+      this.fpsBadge.title = `Omezovač FPS: ${label} (Kliknutím změníš)`;
+    }
+  }
+
+  updateFpsMetrics(now) {
+    this.fpsFrameCount++;
+    const delta = now - this.fpsLastSampleTime;
+    if (delta >= 500) {
+      this.currentFpsDisplay = Math.round((this.fpsFrameCount * 1000) / delta);
+      this.fpsFrameCount = 0;
+      this.fpsLastSampleTime = now;
+      if (this.fpsBadge) {
+        const limitStr = this.targetFps === 0 ? 'Max' : `${this.targetFps}`;
+        this.fpsBadge.textContent = `${this.currentFpsDisplay} / ${limitStr} FPS`;
+      }
+    }
+  }
+
   checkIfCustomServerNeeded() {
-    // If running on file:/// or github.io, show the server input field
     if (window.location.protocol === 'file:' || window.location.host.includes('github.io')) {
       this.customServerBox.classList.remove('hidden');
     }
@@ -789,7 +860,6 @@ class Game {
   bindEvents() {
     window.addEventListener('resize', () => this.resize());
 
-    // Mouse movement
     window.addEventListener('mousemove', e => {
       this.mouse.x = e.clientX;
       this.mouse.y = e.clientY;
@@ -959,7 +1029,6 @@ class Game {
     this.mmoStatus.className = 'status-msg status-info';
     this.mmoStatus.textContent = '🔄 Připojuji se k centrálnímu serveru...';
 
-    // Determine WebSocket URL
     let wsUrl = '';
     const customUrl = this.customServerUrl.value.trim();
 
@@ -971,7 +1040,6 @@ class Game {
       const proto = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
       wsUrl = `${proto}//${window.location.host}/ws`;
     } else {
-      // Local fallback
       wsUrl = 'ws://localhost:8000/ws';
     }
 
@@ -1010,6 +1078,10 @@ class Game {
           this.roomInfo.classList.remove('hidden');
           this.roomInfo.textContent = '🌍 Živý server (Online)';
 
+          this.lastTime = performance.now();
+          this.lastRenderTime = performance.now();
+          this.fpsLastSampleTime = performance.now();
+          this.fpsFrameCount = 0;
           this.isRunning = true;
           requestAnimationFrame(() => this.loopMMO());
         } else if (msg.type === 'world') {
@@ -1051,7 +1123,6 @@ class Game {
       this.scoreVal.textContent = `${cm} cm`;
     }
 
-    // Death detection
     if (data.isDead && !this.wasDead) {
       this.wasDead = true;
       sounds.stopBoost();
@@ -1084,10 +1155,8 @@ class Game {
       });
     }
 
-    // Convert raw foods
     this.foods = (data.foods || []).map(f => new Food(f[0], f[1], f[2], f[3] === 1, f[4]));
 
-    // Convert raw snakes
     this.snakes = (data.snakes || []).map(s => {
       const skin = SKINS[s.skin] || SKINS[0];
       const isMe = (s.id === this.myPlayerId);
@@ -1103,11 +1172,38 @@ class Game {
   loopMMO() {
     if (!this.isRunning || this.currentMode !== 'mmo') return;
 
+    const now = performance.now();
+
+    // Accurate Frame Pacing Limiter
+    if (this.targetFps > 0) {
+      const frameInterval = 1000 / this.targetFps;
+      const elapsed = now - this.lastRenderTime;
+      if (elapsed < frameInterval - 1.2) {
+        requestAnimationFrame(() => this.loopMMO());
+        return;
+      }
+      this.lastRenderTime = now - (elapsed % frameInterval);
+    } else {
+      this.lastRenderTime = now;
+    }
+
+    // Delta Time calculation
+    let dt = (now - this.lastTime) / 1000.0;
+    this.lastTime = now;
+    if (dt > 0.1) dt = 0.1;
+
+    this.updateFpsMetrics(now);
+
+    for (let f of this.foods) {
+      f.update(dt);
+    }
+
     if (this.remoteCam) {
-      this.camera.x += (this.remoteCam.x - this.camera.x) * 0.15;
-      this.camera.y += (this.remoteCam.y - this.camera.y) * 0.15;
+      const lerpFactor = 1.0 - Math.exp(-9.0 * dt);
+      this.camera.x += (this.remoteCam.x - this.camera.x) * lerpFactor;
+      this.camera.y += (this.remoteCam.y - this.camera.y) * lerpFactor;
       const targetZoom = Math.max(0.65, 1.15 - Math.sqrt(this.remoteCam.score || 10) * 0.035);
-      this.camera.zoom += (targetZoom - this.camera.zoom) * 0.05;
+      this.camera.zoom += (targetZoom - this.camera.zoom) * (1.0 - Math.exp(-4.0 * dt));
     }
 
     this.renderWorld(this.snakes, this.foods);
@@ -1179,6 +1275,10 @@ class Game {
     this.gameoverOverlay.classList.add('hidden');
     this.hud.classList.remove('hidden');
 
+    this.lastTime = performance.now();
+    this.lastRenderTime = performance.now();
+    this.fpsLastSampleTime = performance.now();
+    this.fpsFrameCount = 0;
     this.isRunning = true;
     requestAnimationFrame(() => this.loopLocal());
   }
@@ -1209,6 +1309,10 @@ class Game {
     this.gameoverOverlay.classList.add('hidden');
     this.hud.classList.remove('hidden');
 
+    this.lastTime = performance.now();
+    this.lastRenderTime = performance.now();
+    this.fpsLastSampleTime = performance.now();
+    this.fpsFrameCount = 0;
     this.isRunning = true;
     requestAnimationFrame(() => this.loopLocal());
   }
@@ -1216,10 +1320,31 @@ class Game {
   loopLocal() {
     if (!this.isRunning || this.currentMode === 'mmo') return;
 
-    for (let f of this.foods) f.update();
+    const now = performance.now();
+
+    // Accurate Frame Pacing Limiter
+    if (this.targetFps > 0) {
+      const frameInterval = 1000 / this.targetFps;
+      const elapsed = now - this.lastRenderTime;
+      if (elapsed < frameInterval - 1.2) {
+        requestAnimationFrame(() => this.loopLocal());
+        return;
+      }
+      this.lastRenderTime = now - (elapsed % frameInterval);
+    } else {
+      this.lastRenderTime = now;
+    }
+
+    let dt = (now - this.lastTime) / 1000.0;
+    this.lastTime = now;
+    if (dt > 0.1) dt = 0.1;
+
+    this.updateFpsMetrics(now);
+
+    for (let f of this.foods) f.update(dt);
     this.replenishFood();
 
-    for (let s of this.snakes) s.update(this.foods, this.snakes);
+    for (let s of this.snakes) s.update(this.foods, this.snakes, dt);
 
     // Collisions
     const eatDistSq = (rad) => (rad + 12) ** 2;
@@ -1278,28 +1403,29 @@ class Game {
       }
     }
 
-    // Camera handling
+    // Camera handling with delta time
+    const camLerp = 1.0 - Math.exp(-8.0 * dt);
     if (this.currentMode === 'local2p' && this.player1 && this.player2) {
       if (!this.player1.dead && !this.player2.dead) {
         const midX = (this.player1.x + this.player2.x) / 2;
         const midY = (this.player1.y + this.player2.y) / 2;
-        this.camera.x += (midX - this.camera.x) * 0.1;
-        this.camera.y += (midY - this.camera.y) * 0.1;
+        this.camera.x += (midX - this.camera.x) * camLerp;
+        this.camera.y += (midY - this.camera.y) * camLerp;
         const pDist = Math.hypot(this.player1.x - this.player2.x, this.player1.y - this.player2.y);
         const targetZoom = Math.min(1.0, Math.max(0.42, Math.min(this.width, this.height) / (pDist + 450)));
-        this.camera.zoom += (targetZoom - this.camera.zoom) * 0.05;
+        this.camera.zoom += (targetZoom - this.camera.zoom) * (1.0 - Math.exp(-4.0 * dt));
       } else if (!this.player1.dead) {
-        this.camera.x += (this.player1.x - this.camera.x) * 0.1;
-        this.camera.y += (this.player1.y - this.camera.y) * 0.1;
+        this.camera.x += (this.player1.x - this.camera.x) * camLerp;
+        this.camera.y += (this.player1.y - this.camera.y) * camLerp;
       } else if (!this.player2.dead) {
-        this.camera.x += (this.player2.x - this.camera.x) * 0.1;
-        this.camera.y += (this.player2.y - this.camera.y) * 0.1;
+        this.camera.x += (this.player2.x - this.camera.x) * camLerp;
+        this.camera.y += (this.player2.y - this.camera.y) * camLerp;
       }
     } else if (this.player1 && !this.player1.dead) {
-      this.camera.x += (this.player1.x - this.camera.x) * 0.12;
-      this.camera.y += (this.player1.y - this.camera.y) * 0.12;
+      this.camera.x += (this.player1.x - this.camera.x) * camLerp;
+      this.camera.y += (this.player1.y - this.camera.y) * camLerp;
       const targetZoom = Math.max(0.65, 1.15 - Math.sqrt(this.player1.score) * 0.035);
-      this.camera.zoom += (targetZoom - this.camera.zoom) * 0.05;
+      this.camera.zoom += (targetZoom - this.camera.zoom) * (1.0 - Math.exp(-4.0 * dt));
     }
 
     // HUD

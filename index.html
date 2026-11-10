@@ -44,6 +44,7 @@
       </div>
 
       <div id="sound-btn" title="Přepnout zvuk">🔊</div>
+      <div id="fps-badge" title="Kliknutím přepneš FPS limit">60 FPS</div>
       <div id="room-info" class="hidden"></div>
     </div>
 
@@ -70,6 +71,16 @@
           <div class="skin-selector">
             <label>Výběr stylu / kůže:</label>
             <div class="skin-options" id="mmo-skins"></div>
+          </div>
+
+          <div class="fps-selector">
+            <label>⚡ Omezovač FPS (Pro plynulost bez záseků):</label>
+            <div class="fps-options">
+              <button class="fps-btn" data-fps="30">30 FPS</button>
+              <button class="fps-btn active" data-fps="60">60 FPS (Doporučeno)</button>
+              <button class="fps-btn" data-fps="120">120 FPS</button>
+              <button class="fps-btn" data-fps="0">Max</button>
+            </div>
           </div>
 
           <!-- Optional Custom Server URL (for GitHub Pages to connect to Render) -->

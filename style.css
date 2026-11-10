@@ -226,6 +226,75 @@ html, body {
   background: #ff4d94;
 }
 
+#fps-badge {
+  position: absolute;
+  top: 20px;
+  left: 74px;
+  height: 44px;
+  background: rgba(18, 14, 34, 0.85);
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  border-radius: 22px;
+  padding: 0 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Fredoka One', cursive;
+  font-size: 0.95rem;
+  color: #06d6a0;
+  cursor: pointer;
+  pointer-events: auto;
+  transition: transform 0.2s, border-color 0.2s;
+  box-shadow: 0 0 10px rgba(6, 214, 160, 0.2);
+}
+
+#fps-badge:hover {
+  transform: scale(1.06);
+  border-color: #06d6a0;
+}
+
+.fps-selector {
+  margin-bottom: 16px;
+  text-align: left;
+}
+
+.fps-selector label {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #b5a9cc;
+  margin-bottom: 6px;
+}
+
+.fps-options {
+  display: flex;
+  gap: 8px;
+}
+
+.fps-btn {
+  flex: 1;
+  padding: 8px 6px;
+  border-radius: 10px;
+  border: 2px solid #5d4287;
+  background: #110b24;
+  color: #b5a9cc;
+  font-family: 'Fredoka One', cursive;
+  font-size: 0.82rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.fps-btn:hover {
+  border-color: #06d6a0;
+  color: #fff;
+}
+
+.fps-btn.active {
+  border-color: #06d6a0;
+  background: rgba(6, 214, 160, 0.25);
+  color: #06d6a0;
+  box-shadow: 0 0 12px rgba(6, 214, 160, 0.35);
+}
+
 /* Modals */
 #menu-overlay, #gameover-overlay {
   position: absolute;
