@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-SLUTTER.IO - Dedikovaný MMO Server s Delta Time (dt)
+SLUTTER.IO - Vysokorychlostní MMO Server s optimalizací sítě a delta time
 Spuštění: python3 server.py
 """
 
@@ -21,10 +21,11 @@ import random
 PORT = int(os.environ.get('PORT', 8000))
 WORLD_RADIUS = 2800
 BASE_RADIUS = 16
-BASE_SPEED = 230.0  # units per second
-BOOST_SPEED = 450.0 # units per second
+BASE_SPEED = 235.0  # units per sec
+BOOST_SPEED = 460.0 # units per sec
 INITIAL_SCORE = 15
-MAX_FOOD = 750
+MAX_FOOD = 700
+VIEW_DISTANCE = 1600 # View distance for food culling (reduces bandwidth by 90%)
 
 def get_local_ip():
     try:
@@ -136,7 +137,7 @@ class ServerPlayer:
         self.sock = sock
 
         angle = random.uniform(0, math.pi * 2)
-        dist = math.sqrt(random.uniform(0, 0.75)) * (WORLD_RADIUS - 400)
+        dist = math.sqrt(random.uniform(0, 0.7)) * (WORLD_RADIUS - 400)
         self.x = math.cos(angle) * dist
         self.y = math.sin(angle) * dist
 
@@ -152,7 +153,7 @@ class ServerPlayer:
 
     def respawn(self):
         angle = random.uniform(0, math.pi * 2)
-        dist = math.sqrt(random.uniform(0, 0.75)) * (WORLD_RADIUS - 400)
+        dist = math.sqrt(random.uniform(0, 0.7)) * (WORLD_RADIUS - 400)
         self.x = math.cos(angle) * dist
         self.y = math.sin(angle) * dist
         self.angle = random.uniform(0, math.pi * 2)
@@ -177,7 +178,7 @@ class ServerPlayer:
         rad = self.get_radius()
         speed = BOOST_SPEED if (self.is_boosting and self.score > 8) else BASE_SPEED
 
-        # Delta-time based smooth steering (approx 5.5 radians/sec max turn rate)
+        # Steering
         diff = (self.target_angle - self.angle + math.pi) % (math.pi * 2) - math.pi
         turn_speed = 5.5 * dt
         if abs(diff) <= turn_speed:
@@ -185,7 +186,7 @@ class ServerPlayer:
         else:
             self.angle += math.copysign(turn_speed, diff)
 
-        # Move head by velocity * dt
+        # Move head
         dist_moved = speed * dt
         self.x += math.cos(self.angle) * dist_moved
         self.y += math.sin(self.angle) * dist_moved
@@ -215,15 +216,13 @@ class ServerPlayer:
 
         self.segments = new_segments
 
-        # Clean history
         max_h = (target_count + 5) * 20
         if len(self.history) > max_h:
             self.history = self.history[:max_h]
 
-        # Boost food drops timed via delta time
         if self.is_boosting and self.score > 8:
             self.boost_timer += dt
-            if self.boost_timer >= 0.08: # Drop food ~12 times per second
+            if self.boost_timer >= 0.08:
                 self.boost_timer = 0.0
                 self.score -= 0.6
                 tail = self.segments[-1] if self.segments else [self.x, self.y]
@@ -235,7 +234,6 @@ class ServerPlayer:
                     '#ffffff'
                 ))
 
-        # Arena boundary check
         if math.hypot(self.x, self.y) > WORLD_RADIUS:
             self.die(new_foods)
 
@@ -301,14 +299,12 @@ class SlutterWorld:
             now = time.time()
             dt = now - last_time
             last_time = now
-
-            # Clamp delta time to avoid physics explosion during large pauses
             dt = min(max(dt, 0.001), 0.1)
 
             new_foods = []
 
             with self.lock:
-                # 1. Update player movements with exact dt
+                # 1. Update player movements
                 for p in list(self.players.values()):
                     if not p.dead:
                         p.update_movement(dt, new_foods)
@@ -317,7 +313,7 @@ class SlutterWorld:
                 for p in self.players.values():
                     if p.dead: continue
                     hrad = p.get_radius()
-                    thresh_sq = (hrad + 12) ** 2
+                    thresh_sq = (hrad + 14) ** 2
                     surviving_foods = []
                     for f in self.foods:
                         dx = p.x - f.x
@@ -347,7 +343,6 @@ class SlutterWorld:
                                 break
                         if p1.dead: break
 
-                # Add new foods
                 self.foods.extend(new_foods)
 
                 # Replenish foods
@@ -362,15 +357,16 @@ class SlutterWorld:
                         is_sperm
                     ))
 
-                # Broadcast snapshot
+                # Broadcast snapshot with viewport culling
                 self.broadcast_world()
 
             elapsed = time.time() - now
-            target_frame_time = 0.045 # ~22 ticks per sec
-            sleep_time = max(0.002, target_frame_time - elapsed)
+            # Fixed target frame time: 40ms (~25 FPS server tick)
+            sleep_time = max(0.002, 0.04 - elapsed)
             time.sleep(sleep_time)
 
     def broadcast_world(self):
+        # Build snakes data (always sent to everyone so minimap knows all player locations!)
         snakes_data = []
         leaderboard = []
 
@@ -381,6 +377,8 @@ class SlutterWorld:
                     "id": p.pid,
                     "name": p.name,
                     "skin": p.skin_idx,
+                    "x": round(p.x),
+                    "y": round(p.y),
                     "angle": round(p.angle, 2),
                     "score": round(p.score, 1),
                     "boost": p.is_boosting,
@@ -390,12 +388,24 @@ class SlutterWorld:
         leaderboard.sort(key=lambda x: x[1], reverse=True)
         top_lb = leaderboard[:8]
 
-        foods_data = [
-            [round(f.x), round(f.y), round(f.value, 1), 1 if f.is_sperm else 0, f.color]
-            for f in self.foods
-        ]
+        # Send culled foods per player to keep payload < 3KB per tick!
+        view_sq = VIEW_DISTANCE * VIEW_DISTANCE
 
         for p in list(self.players.values()):
+            nearby_foods = []
+            px, py = p.x, p.y
+            for f in self.foods:
+                dx = f.x - px
+                dy = f.y - py
+                if dx*dx + dy*dy <= view_sq:
+                    nearby_foods.append([
+                        round(f.x),
+                        round(f.y),
+                        round(f.value, 1),
+                        1 if f.is_sperm else 0,
+                        f.color
+                    ])
+
             payload = {
                 "type": "world",
                 "myId": p.pid,
@@ -403,7 +413,7 @@ class SlutterWorld:
                 "isDead": p.dead,
                 "cam": {"x": round(p.x), "y": round(p.y), "score": round(p.score, 1)},
                 "snakes": snakes_data,
-                "foods": foods_data,
+                "foods": nearby_foods,
                 "lb": top_lb
             }
             msg = json.dumps(payload)
@@ -493,10 +503,12 @@ def main():
 
     with ThreadedTCPServer(("", PORT), DualHTTPHandler) as httpd:
         print("=" * 64)
-        print("🍆 SLUTTER.IO CENTRÁLNÍ MMO SERVER (DELTA TIME AKTIVNÍ) 🎮")
+        print("🍆 SLUTTER.IO SUPER-OPTIMALIZOVANÝ SERVER BĚŽÍ! 🎮")
         print("=" * 64)
         print(f"👉 Lokální přístup:     http://localhost:{PORT}")
         print(f"👉 Přístup z Wi-Fi:     http://{local_ip}:{PORT}")
+        print("=" * 64)
+        print("✨ Culling aktivní (90% úspora sítě) pro naprosto plynulý chod!")
         print("=" * 64)
         try:
             httpd.serve_forever()

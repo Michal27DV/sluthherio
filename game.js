@@ -1,6 +1,6 @@
 /**
  * SLUTTER.IO - Dedicated MMO Server & Solo Penis Battle Royale
- * Fully Delta-Time (dt) Driven Simulation with Configurable FPS Limiter
+ * With Network Interpolation (Zero-Stutter) and Radar Minimap with Names
  */
 
 // --- Audio Synthesizer (Web Audio API) ---
@@ -185,11 +185,11 @@ const BOT_NAMES = [
 
 const WORLD_RADIUS = 2800;
 const BASE_RADIUS = 16;
-const BASE_SPEED = 230.0;
-const BOOST_SPEED = 450.0;
+const BASE_SPEED = 235.0;
+const BOOST_SPEED = 460.0;
 const INITIAL_SCORE = 15;
 const MAX_BOTS = 22;
-const MAX_FOOD = 750;
+const MAX_FOOD = 700;
 
 function distSq(x1, y1, x2, y2) {
   const dx = x2 - x1;
@@ -207,7 +207,7 @@ function randRange(min, max) {
   return min + Math.random() * (max - min);
 }
 
-// --- Food Class with Delta Time ---
+// --- Food Class ---
 class Food {
   constructor(x, y, value = 1, isSperm = false, color = null) {
     this.x = x;
@@ -285,7 +285,7 @@ class Food {
   }
 }
 
-// --- Snake Class with Delta Time ---
+// --- Snake Class with Smooth Network Interpolation ---
 class PenisSnake {
   constructor(name, x, y, skin, isPlayer = false, playerIndex = 1) {
     this.name = name;
@@ -296,8 +296,8 @@ class PenisSnake {
     this.isPlayer = isPlayer;
     this.playerIndex = playerIndex;
 
-    this.x = x;
-    this.y = y;
+    this.x = x || 0;
+    this.y = y || 0;
     this.angle = Math.random() * Math.PI * 2;
     this.targetAngle = this.angle;
     this.score = INITIAL_SCORE;
@@ -310,6 +310,12 @@ class PenisSnake {
     this.boostTimer = 0.0;
     this.blinkTime = Math.random() * 10;
 
+    // Smooth network interpolation targets
+    this.serverX = this.x;
+    this.serverY = this.y;
+    this.serverAngle = this.angle;
+    this.serverSegments = [];
+
     this.aiWanderTimer = 0;
     this.aiTarget = null;
   }
@@ -320,6 +326,28 @@ class PenisSnake {
 
   getTargetLength() {
     return Math.floor(12 + this.score * 0.65);
+  }
+
+  // Smoothly blend remote positions at 60 FPS
+  interpolateMMO(dt) {
+    const lerpRate = 1.0 - Math.exp(-22.0 * dt);
+
+    this.x += (this.serverX - this.x) * lerpRate;
+    this.y += (this.serverY - this.y) * lerpRate;
+
+    const angleDiff = normalizeAngle(this.serverAngle - this.angle);
+    this.angle += angleDiff * lerpRate;
+
+    if (this.serverSegments && this.serverSegments.length > 0) {
+      if (this.segments.length !== this.serverSegments.length) {
+        this.segments = this.serverSegments.map(p => ({ x: p.x, y: p.y }));
+      } else {
+        for (let i = 0; i < this.segments.length; i++) {
+          this.segments[i].x += (this.serverSegments[i].x - this.segments[i].x) * lerpRate;
+          this.segments[i].y += (this.serverSegments[i].y - this.segments[i].y) * lerpRate;
+        }
+      }
+    }
   }
 
   update(foods, snakes, dt) {
@@ -722,12 +750,11 @@ class Game {
     this.p2SkinIdx = 5;
     this.soloSkinIdx = 0;
 
-    // FPS Limiter Config
-    this.targetFps = 60; // 30, 60, 120, or 0 (uncapped)
+    // FPS Config
+    this.targetFps = 60;
     this.lastRenderTime = performance.now();
     this.lastTime = performance.now();
 
-    // FPS Counter metrics
     this.fpsFrameCount = 0;
     this.fpsLastSampleTime = performance.now();
     this.currentFpsDisplay = 60;
@@ -740,6 +767,9 @@ class Game {
     this.player2 = null;
     this.snakes = [];
     this.foods = [];
+
+    // Persistent Snake Entity Map for buttery smooth interpolation
+    this.mmoSnakesMap = new Map();
 
     // Inputs
     this.mouse = { x: 0, y: 0 };
@@ -771,11 +801,9 @@ class Game {
 
     if (this.fpsBadge) {
       this.fpsBadge.addEventListener('click', () => {
-        // Toggle: 60 -> 120 -> 0 (Max) -> 30 -> 60
         const order = [60, 120, 0, 30];
         const nextIdx = (order.indexOf(this.targetFps) + 1) % order.length;
         this.setTargetFps(order[nextIdx]);
-        // Update menu buttons as well
         buttons.forEach(b => {
           if (parseInt(b.dataset.fps, 10) === this.targetFps) b.classList.add('active');
           else b.classList.remove('active');
@@ -1092,7 +1120,7 @@ class Game {
 
     this.mmoWs.onerror = () => {
       this.mmoStatus.className = 'status-msg status-error';
-      this.mmoStatus.innerHTML = '❌ Server neodpovídá.<br>Pokud hraješ z Render.com, počkej cca 30s než se bezplatný server probudí a zkus to znovu!';
+      this.mmoStatus.innerHTML = '❌ Server neodpovídá.<br>Pokud běží na Renderu, počkej cca 20s na probuzení a zkus to znovu!';
     };
 
     this.mmoWs.onclose = () => {
@@ -1155,18 +1183,51 @@ class Game {
       });
     }
 
+    // Process foods
     this.foods = (data.foods || []).map(f => new Food(f[0], f[1], f[2], f[3] === 1, f[4]));
 
-    this.snakes = (data.snakes || []).map(s => {
-      const skin = SKINS[s.skin] || SKINS[0];
+    // Entity Map Update for Smooth 60 FPS Interpolation
+    const currentPids = new Set();
+    const updatedSnakes = [];
+
+    (data.snakes || []).forEach(s => {
+      currentPids.add(s.id);
+      let sn = this.mmoSnakesMap.get(s.id);
       const isMe = (s.id === this.myPlayerId);
-      const sn = new PenisSnake(s.name, 0, 0, skin, isMe, isMe ? 1 : 0);
-      sn.angle = s.angle;
+
+      const headPos = s.segs && s.segs.length > 0 ? s.segs[0] : [s.x || 0, s.y || 0];
+
+      if (!sn) {
+        const skin = SKINS[s.skin] || SKINS[0];
+        sn = new PenisSnake(s.name, headPos[0], headPos[1], skin, isMe, isMe ? 1 : 0);
+        sn.id = s.id;
+        sn.segments = s.segs.map(pt => ({ x: pt[0], y: pt[1] }));
+        this.mmoSnakesMap.set(s.id, sn);
+      }
+
+      // Store authoritative server targets
+      sn.serverX = headPos[0];
+      sn.serverY = headPos[1];
+      sn.serverAngle = s.angle;
       sn.score = s.score;
       sn.isBoosting = s.boost;
-      sn.segments = s.segs.map(pt => ({ x: pt[0], y: pt[1] }));
-      return sn;
+      sn.serverSegments = s.segs.map(pt => ({ x: pt[0], y: pt[1] }));
+
+      // Explicitly set coordinates so minimap draws exact positions!
+      sn.x = headPos[0];
+      sn.y = headPos[1];
+
+      updatedSnakes.push(sn);
     });
+
+    // Cleanup disconnected snakes
+    for (let [pid] of this.mmoSnakesMap) {
+      if (!currentPids.has(pid)) {
+        this.mmoSnakesMap.delete(pid);
+      }
+    }
+
+    this.snakes = updatedSnakes;
   }
 
   loopMMO() {
@@ -1174,11 +1235,11 @@ class Game {
 
     const now = performance.now();
 
-    // Accurate Frame Pacing Limiter
-    if (this.targetFps > 0) {
+    // High precision pacing limiter (only throttle if requested)
+    if (this.targetFps > 0 && this.targetFps < 120) {
       const frameInterval = 1000 / this.targetFps;
       const elapsed = now - this.lastRenderTime;
-      if (elapsed < frameInterval - 1.2) {
+      if (elapsed < frameInterval - 3.0) {
         requestAnimationFrame(() => this.loopMMO());
         return;
       }
@@ -1187,12 +1248,16 @@ class Game {
       this.lastRenderTime = now;
     }
 
-    // Delta Time calculation
     let dt = (now - this.lastTime) / 1000.0;
     this.lastTime = now;
     if (dt > 0.1) dt = 0.1;
 
     this.updateFpsMetrics(now);
+
+    // Smooth 60 FPS entity interpolation (eliminates 25Hz stepping jitter)
+    for (let sn of this.snakes) {
+      sn.interpolateMMO(dt);
+    }
 
     for (let f of this.foods) {
       f.update(dt);
@@ -1322,11 +1387,10 @@ class Game {
 
     const now = performance.now();
 
-    // Accurate Frame Pacing Limiter
-    if (this.targetFps > 0) {
+    if (this.targetFps > 0 && this.targetFps < 120) {
       const frameInterval = 1000 / this.targetFps;
       const elapsed = now - this.lastRenderTime;
-      if (elapsed < frameInterval - 1.2) {
+      if (elapsed < frameInterval - 3.0) {
         requestAnimationFrame(() => this.loopLocal());
         return;
       }
@@ -1452,33 +1516,116 @@ class Game {
     requestAnimationFrame(() => this.loopLocal());
   }
 
+  // --- RADAR MINIMAP (Shows all friends with names and distinct markers) ---
   drawMinimap() {
     const mCtx = this.miniCtx;
     const w = this.minimapCanvas.width;
     const h = this.minimapCanvas.height;
     const cx = w / 2;
     const cy = h / 2;
-    const scale = (w * 0.46) / WORLD_RADIUS;
+    const mapRadius = w * 0.46;
+    const scale = mapRadius / WORLD_RADIUS;
 
     mCtx.clearRect(0, 0, w, h);
 
-    mCtx.fillStyle = 'rgba(20, 16, 38, 0.9)';
+    // Radar Dark Circular Background
+    mCtx.fillStyle = 'rgba(15, 11, 30, 0.92)';
     mCtx.beginPath();
-    mCtx.arc(cx, cy, w * 0.46, 0, Math.PI * 2);
+    mCtx.arc(cx, cy, mapRadius, 0, Math.PI * 2);
     mCtx.fill();
-    mCtx.strokeStyle = 'rgba(255, 77, 148, 0.4)';
-    mCtx.lineWidth = 2;
+
+    // Radar Grid Rings
+    mCtx.strokeStyle = 'rgba(255, 77, 148, 0.2)';
+    mCtx.lineWidth = 1;
+    mCtx.beginPath();
+    mCtx.arc(cx, cy, mapRadius * 0.5, 0, Math.PI * 2);
     mCtx.stroke();
 
+    // Radar Arena Border
+    mCtx.strokeStyle = '#ff3366';
+    mCtx.lineWidth = 2.5;
+    mCtx.beginPath();
+    mCtx.arc(cx, cy, mapRadius, 0, Math.PI * 2);
+    mCtx.stroke();
+
+    // Crosshair lines
+    mCtx.strokeStyle = 'rgba(255, 255, 255, 0.08)';
+    mCtx.beginPath();
+    mCtx.moveTo(cx, cy - mapRadius);
+    mCtx.lineTo(cx, cy + mapRadius);
+    mCtx.moveTo(cx - mapRadius, cy);
+    mCtx.lineTo(cx + mapRadius, cy);
+    mCtx.stroke();
+
+    // Pulsing radar sweep effect
+    const pulseTime = performance.now() * 0.003;
+
+    // Draw ALL players on minimap
     for (let s of this.snakes) {
       if (s.dead) continue;
-      const mx = cx + s.x * scale;
-      const my = cy + s.y * scale;
 
-      mCtx.fillStyle = s.isPlayer ? '#06d6a0' : 'rgba(255, 255, 255, 0.65)';
-      mCtx.beginPath();
-      mCtx.arc(mx, my, s.isPlayer ? 3.5 : 2, 0, Math.PI * 2);
-      mCtx.fill();
+      // Extract accurate coordinates
+      const head = (s.segments && s.segments.length > 0) ? s.segments[0] : { x: s.x, y: s.y };
+      const mx = cx + head.x * scale;
+      const my = cy + head.y * scale;
+
+      const isMe = (this.currentMode === 'mmo' ? (s.id === this.myPlayerId) : s.isPlayer);
+
+      if (isMe) {
+        // --- DRAW ME (Bright Neon Green with Pulsing Locator Ring) ---
+        const ringRad = 5.5 + Math.sin(pulseTime * 2) * 2.5;
+        mCtx.strokeStyle = 'rgba(6, 214, 160, 0.7)';
+        mCtx.lineWidth = 1.5;
+        mCtx.beginPath();
+        mCtx.arc(mx, my, ringRad, 0, Math.PI * 2);
+        mCtx.stroke();
+
+        mCtx.fillStyle = '#06d6a0';
+        mCtx.shadowColor = '#06d6a0';
+        mCtx.shadowBlur = 8;
+        mCtx.beginPath();
+        mCtx.arc(mx, my, 5, 0, Math.PI * 2);
+        mCtx.fill();
+        mCtx.shadowBlur = 0;
+
+        // Heading pointer
+        mCtx.strokeStyle = '#ffffff';
+        mCtx.lineWidth = 2;
+        mCtx.beginPath();
+        mCtx.moveTo(mx, my);
+        mCtx.lineTo(mx + Math.cos(s.angle) * 9, my + Math.sin(s.angle) * 9);
+        mCtx.stroke();
+
+      } else {
+        // --- DRAW FRIEND / ENEMY (Prominent Marker with Player Name) ---
+        const friendColor = s.skin ? s.skin.glans : '#ff99c8';
+
+        // Outer glow dot
+        mCtx.fillStyle = friendColor;
+        mCtx.shadowColor = friendColor;
+        mCtx.shadowBlur = 6;
+        mCtx.beginPath();
+        mCtx.arc(mx, my, 4.2, 0, Math.PI * 2);
+        mCtx.fill();
+        mCtx.shadowBlur = 0;
+
+        // White center point
+        mCtx.fillStyle = '#ffffff';
+        mCtx.beginPath();
+        mCtx.arc(mx, my, 1.8, 0, Math.PI * 2);
+        mCtx.fill();
+
+        // FRIEND'S NAME ON RADAR
+        mCtx.save();
+        mCtx.font = 'bold 9px Nunito, sans-serif';
+        mCtx.fillStyle = '#ffffff';
+        mCtx.textAlign = 'center';
+        mCtx.textBaseline = 'bottom';
+        mCtx.shadowColor = '#000000';
+        mCtx.shadowBlur = 3;
+        mCtx.fillText(s.name, mx, my - 5);
+        mCtx.restore();
+      }
     }
   }
 
