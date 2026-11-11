@@ -111,7 +111,7 @@ const sounds = new SoundController();
 // --- Skin Palettes ---
 const SKINS = [
   {
-    name: 'Lesní šupina',
+    name: 'Zelená',
     body: '#547d48',
     glans: '#8ebc61',
     outline: '#243f2b',
@@ -119,7 +119,7 @@ const SKINS = [
     ball: '#405f38'
   },
   {
-    name: 'Měděný drak',
+    name: 'Měděná',
     body: '#a95f36',
     glans: '#d8894c',
     outline: '#57351e',
@@ -127,7 +127,7 @@ const SKINS = [
     ball: '#78432c'
   },
   {
-    name: 'Obsidián',
+    name: 'Tmavá',
     body: '#333b48',
     glans: '#59697a',
     outline: '#171d27',
@@ -135,7 +135,7 @@ const SKINS = [
     ball: '#252e3a'
   },
   {
-    name: 'Královský ametyst',
+    name: 'Fialová',
     body: '#7957a5',
     glans: '#aa82d4',
     outline: '#34254d',
@@ -143,7 +143,7 @@ const SKINS = [
     ball: '#594071'
   },
   {
-    name: 'Bažinný jed',
+    name: 'Olivová',
     body: '#718c3c',
     glans: '#a7bc50',
     outline: '#36431e',
@@ -151,7 +151,7 @@ const SKINS = [
     ball: '#556d34'
   },
   {
-    name: 'Ledový wyrm',
+    name: 'Modrá',
     body: '#4d8190',
     glans: '#83c1c8',
     outline: '#244754',
@@ -159,7 +159,7 @@ const SKINS = [
     ball: '#3d6773'
   },
   {
-    name: 'Zlatý gryf',
+    name: 'Zlatá',
     body: '#bd963e',
     glans: '#e2c56b',
     outline: '#67501e',
@@ -167,7 +167,7 @@ const SKINS = [
     ball: '#947438'
   },
   {
-    name: 'Šarlatový rytíř',
+    name: 'Červená',
     body: '#9e4140',
     glans: '#d66d55',
     outline: '#4f2528',
@@ -177,10 +177,8 @@ const SKINS = [
 ];
 
 const BOT_NAMES = [
-  'Sir Šupina', 'Zelený drak', 'Rytíř z Dubu', 'Královský wyrm', 'Bohumil z Hvozdu',
-  'Železný ještěr', 'Měděný strážce', 'Tichý bazilišek', 'Baron Ostrohřbet', 'Karel z Údolí',
-  'Císařský drak', 'Pan z Černé věže', 'Stříbrný chřtán', 'Sir Salamandr', 'Hradní hlídač',
-  'Generál Šupináč', 'Lesní přízrak', 'Zlatý gryf', 'Růžový wyrm', 'Poslední strážce'
+  'Jan', 'Eva', 'Marek', 'Klára', 'Bohumil', 'Matěj', 'Anna', 'Tomáš', 'Barbora', 'Karel',
+  'Eliška', 'Pavel', 'Tereza', 'David', 'Hana', 'Vojtěch', 'Lucie', 'Filip', 'Veronika', 'Ondřej'
 ];
 
 const WORLD_RADIUS = 2800;
@@ -658,7 +656,7 @@ class PenisSnake {
     ctx.restore();
 
     ctx.save();
-    ctx.font = '700 13px Cinzel, serif';
+    ctx.font = '700 13px Nunito, sans-serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'bottom';
     ctx.fillStyle = isMyTeammate ? '#f0d68a' : '#f4eedb';
@@ -1150,7 +1148,7 @@ class Game {
   // --- DEDICATED MMO MODE WITH DUO CO-OP ---
   startMMO() {
     this.currentMode = 'mmo';
-    const nick = this.mmoNick.value.trim() || 'SuperKláda';
+    const nick = this.mmoNick.value.trim() || 'Hráč';
     const skin = this.mmoSkinIdx;
     const team = this.isCoopMode ? (this.teamCode || 'DUO') : null;
 
@@ -1254,6 +1252,8 @@ class Game {
   }
 
   handleWorldSnapshot(data) {
+    if (!this.isRunning) return;
+
     this.remoteCam = data.cam;
     this.myTeam = data.myTeam;
     this.teammate = data.teammate;
@@ -1267,18 +1267,8 @@ class Game {
       this.wasDead = true;
       sounds.stopBoost();
       sounds.playDeath();
-      const cm = (10 + (data.myScore || 0) * 0.16).toFixed(1);
-      this.finalScore.textContent = `${cm} cm`;
-
-      // Check if teammate is alive for Duo Respawn
-      if (this.teammate && !this.teammate.dead) {
-        this.respawnTeammateBtn.classList.remove('hidden');
-        this.respawnTeammateBtn.textContent = `⚡ RESPAWN U ${this.teammate.name.toUpperCase()}`;
-      } else {
-        this.respawnTeammateBtn.classList.add('hidden');
-      }
-
-      this.gameoverOverlay.classList.remove('hidden');
+      this.returnToMenu();
+      return;
     } else if (!data.isDead) {
       this.wasDead = false;
     }
@@ -1499,7 +1489,7 @@ class Game {
 
   startSolo() {
     this.currentMode = 'solo';
-    const nick = this.soloNick.value.trim() || 'MegaKláda';
+    const nick = this.soloNick.value.trim() || 'Hráč';
     const skin = SKINS[this.soloSkinIdx];
 
     this.player1 = new PenisSnake(nick, 0, 0, skin, true, 1);
@@ -1532,8 +1522,8 @@ class Game {
 
   startLocal2P() {
     this.currentMode = 'local2p';
-    const nick1 = this.p1Nick.value.trim() || 'Rytíř 1';
-    const nick2 = this.p2Nick.value.trim() || 'Rytíř 2';
+    const nick1 = this.p1Nick.value.trim() || 'Hráč 1';
+    const nick2 = this.p2Nick.value.trim() || 'Hráč 2';
     const skin1 = SKINS[this.p1SkinIdx];
     const skin2 = SKINS[this.p2SkinIdx];
 
@@ -1642,11 +1632,10 @@ class Game {
           setTimeout(() => {
             if (this.isRunning) this.snakes.push(this.spawnBot());
           }, randRange(1500, 3500));
-        } else if (this.currentMode === 'solo') {
+        } else {
           sounds.stopBoost();
-          const cm = (10 + s.score * 0.16).toFixed(1);
-          this.finalScore.textContent = `${cm} cm`;
-          setTimeout(() => this.gameoverOverlay.classList.remove('hidden'), 600);
+          this.returnToMenu();
+          return;
         }
       }
     }
@@ -1802,7 +1791,7 @@ class Game {
         mCtx.shadowBlur = 0;
 
         mCtx.save();
-        mCtx.font = 'bold 10px Fredoka One, cursive';
+        mCtx.font = 'bold 10px Nunito, sans-serif';
         mCtx.fillStyle = '#e4cb8b';
         mCtx.textAlign = 'center';
         mCtx.textBaseline = 'bottom';

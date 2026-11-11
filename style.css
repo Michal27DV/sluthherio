@@ -55,7 +55,7 @@ html, body {
   box-shadow: 0 0 15px rgba(255, 77, 148, 0.4);
   padding: 10px 18px;
   border-radius: 30px;
-  font-family: 'Fredoka One', cursive;
+  font-family: 'Nunito', sans-serif;
   font-size: 1.3rem;
   letter-spacing: 0.5px;
   display: flex;
@@ -88,7 +88,7 @@ html, body {
   background: rgba(18, 14, 34, 0.9);
   padding: 8px 16px;
   border-radius: 20px;
-  font-family: 'Fredoka One', cursive;
+  font-family: 'Nunito', sans-serif;
   font-size: 1.15rem;
   display: flex;
   align-items: center;
@@ -120,7 +120,7 @@ html, body {
   border: 2px solid #118ab2;
   border-radius: 12px;
   padding: 6px 14px;
-  font-family: 'Fredoka One', cursive;
+  font-family: 'Nunito', sans-serif;
   font-size: 0.95rem;
   color: #caf0f8;
 }
@@ -139,7 +139,7 @@ html, body {
 }
 
 .lb-title {
-  font-family: 'Fredoka One', cursive;
+  font-family: 'Nunito', sans-serif;
   font-size: 1rem;
   color: #ffd166;
   text-align: center;
@@ -238,7 +238,7 @@ html, body {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-family: 'Fredoka One', cursive;
+  font-family: 'Nunito', sans-serif;
   font-size: 0.95rem;
   color: #06d6a0;
   cursor: pointer;
@@ -264,7 +264,7 @@ html, body {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-family: 'Fredoka One', cursive;
+  font-family: 'Nunito', sans-serif;
   font-size: 0.95rem;
   color: #ff4d94;
   cursor: pointer;
@@ -304,7 +304,7 @@ html, body {
   border: 2px solid #5d4287;
   background: #110b24;
   color: #b5a9cc;
-  font-family: 'Fredoka One', cursive;
+  font-family: 'Nunito', sans-serif;
   font-size: 0.82rem;
   cursor: pointer;
   transition: all 0.2s;
@@ -357,7 +357,7 @@ html, body {
 }
 
 .logo-title {
-  font-family: 'Fredoka One', cursive;
+  font-family: 'Nunito', sans-serif;
   font-size: 3.2rem;
   line-height: 1;
   margin-bottom: 4px;
@@ -389,7 +389,7 @@ html, body {
   border: none;
   background: transparent;
   color: #b5a9cc;
-  font-family: 'Fredoka One', cursive;
+  font-family: 'Nunito', sans-serif;
   font-size: 0.95rem;
   border-radius: 12px;
   cursor: pointer;
@@ -413,7 +413,7 @@ html, body {
   border: 2px solid #5d4287;
   background: #110b24;
   color: #fff;
-  font-family: 'Fredoka One', cursive;
+  font-family: 'Nunito', sans-serif;
   font-size: 1.05rem;
   text-align: center;
   outline: none;
@@ -476,7 +476,7 @@ html, body {
   color: #fff;
   border: none;
   border-radius: 14px;
-  font-family: 'Fredoka One', cursive;
+  font-family: 'Nunito', sans-serif;
   font-size: 1.3rem;
   cursor: pointer;
   box-shadow: 0 6px 20px rgba(255, 77, 148, 0.5);
@@ -514,7 +514,7 @@ html, body {
   border: 2px solid #5d4287;
   background: #110b24;
   color: #b5a9cc;
-  font-family: 'Fredoka One', cursive;
+  font-family: 'Nunito', sans-serif;
   font-size: 0.85rem;
   cursor: pointer;
   transition: all 0.2s;
@@ -553,7 +553,7 @@ html, body {
   border: none;
   border-radius: 10px;
   padding: 10px 12px;
-  font-family: 'Fredoka One', cursive;
+  font-family: 'Nunito', sans-serif;
   font-size: 0.85rem;
   cursor: pointer;
   white-space: nowrap;
@@ -590,7 +590,7 @@ html, body {
 }
 
 .team-badge {
-  font-family: 'Fredoka One', cursive;
+  font-family: 'Nunito', sans-serif;
   font-size: 1.6rem;
   color: #ffd166;
   letter-spacing: 3px;
@@ -630,7 +630,7 @@ html, body {
 }
 
 .compass-name {
-  font-family: 'Fredoka One', cursive;
+  font-family: 'Nunito', sans-serif;
   font-size: 0.85rem;
   color: #fff;
 }
@@ -712,7 +712,7 @@ html, body {
   color: #fff;
   border: none;
   border-radius: 12px;
-  font-family: 'Fredoka One', cursive;
+  font-family: 'Nunito', sans-serif;
   font-size: 1.05rem;
   cursor: pointer;
   box-shadow: 0 4px 15px rgba(17, 138, 178, 0.4);
@@ -764,7 +764,7 @@ html, body {
 }
 
 .player-config-box h4 {
-  font-family: 'Fredoka One', cursive;
+  font-family: 'Nunito', sans-serif;
   font-size: 0.95rem;
 }
 
@@ -792,7 +792,7 @@ html, body {
 }
 
 .online-box h4 {
-  font-family: 'Fredoka One', cursive;
+  font-family: 'Nunito', sans-serif;
   font-size: 1rem;
   color: #ffd166;
 }
@@ -811,7 +811,7 @@ html, body {
 }
 
 .room-code-badge {
-  font-family: 'Fredoka One', cursive;
+  font-family: 'Nunito', sans-serif;
   font-size: 1.5rem;
   color: #06d6a0;
   letter-spacing: 2px;
@@ -878,7 +878,7 @@ html, body {
 }
 
 .gameover-card h2 {
-  font-family: 'Fredoka One', cursive;
+  font-family: 'Nunito', sans-serif;
   color: #ff3366;
   font-size: 1.9rem;
   margin-bottom: 8px;
@@ -900,7 +900,7 @@ html, body {
 }
 
 .final-score-box span {
-  font-family: 'Fredoka One', cursive;
+  font-family: 'Nunito', sans-serif;
   color: #06d6a0;
   font-size: 1.4rem;
 }
@@ -936,33 +936,33 @@ html, body { background: #111811; color: var(--parchment); font-family: 'Nunito'
   content: '✦  KRÁLOVSTVÍ DRAČÍHO ŠUPINATCE  ✦';
   display: block;
   color: var(--brass-light);
-  font: 700 .64rem 'Cinzel',serif;
+  font: 700 .64rem 'Nunito',sans-serif;
   letter-spacing: .2em;
   margin: -9px 0 13px;
 }
-.logo-title { font: 800 clamp(2.25rem,7vw,3.2rem)/1 'Cinzel',serif; letter-spacing: .035em; text-shadow: 0 2px #26301d,0 0 24px rgba(196,161,92,.2); }
+.logo-title { font: 800 clamp(2.25rem,7vw,3.2rem)/1 'Nunito',sans-serif; letter-spacing: .035em; text-shadow: 0 2px #26301d,0 0 24px rgba(196,161,92,.2); }
 .logo-slutter { color: #d7c28d; }
 .logo-io { color: #82966a; }
 .tagline { color: var(--muted-parchment); font-size: .88rem; }
 .mode-tabs { background: rgba(8,13,9,.7); border: 1px solid rgba(196,161,92,.24); border-radius: 6px; }
-.mode-tab { color: #b5b59d; font: 700 .76rem 'Cinzel',serif; border-radius: 4px; }
+.mode-tab { color: #b5b59d; font: 700 .76rem 'Nunito',sans-serif; border-radius: 4px; }
 .mode-tab.active { background: linear-gradient(135deg,#8f7543,#6c613d); color: #fff4d5; box-shadow: inset 0 0 0 1px rgba(238,218,165,.38),0 3px 14px rgba(0,0,0,.3); }
 .input-group input, input[type="text"] { background: rgba(9,15,10,.78); color: #f0e8d1; border: 1px solid #59664a; border-radius: 5px; font: 700 .98rem 'Nunito',sans-serif; }
 .input-group input:focus, input[type="text"]:focus { border-color: var(--brass); box-shadow: 0 0 0 2px rgba(196,161,92,.16); }
-.skin-selector label, .team-selector-box label, .fps-selector label { color: var(--brass-light); font-family: 'Cinzel',serif; letter-spacing: .04em; }
+.skin-selector label, .team-selector-box label, .fps-selector label { color: var(--brass-light); font-family: 'Nunito',sans-serif; letter-spacing: .04em; }
 .skin-btn { border-radius: 5px; transform: rotate(45deg) scale(.82); border: 2px solid rgba(232,223,196,.3); }
 .skin-btn:hover { transform: rotate(45deg) scale(.98); }
 .skin-btn.active { border-color: #f2d88e; transform: rotate(45deg) scale(1.08); box-shadow: 0 0 14px rgba(228,203,139,.48); }
 .primary-btn, .secondary-btn {
   border: 1px solid rgba(236,215,163,.42); border-radius: 5px;
   background: linear-gradient(180deg,#8c7545,#615b37); color: #fff3d3;
-  font: 700 1rem 'Cinzel',serif; letter-spacing: .025em;
+  font: 700 1rem 'Nunito',sans-serif; letter-spacing: .025em;
   box-shadow: 0 5px 18px rgba(0,0,0,.32),inset 0 1px rgba(255,244,212,.16);
 }
 .primary-btn:hover, .secondary-btn:hover { background: linear-gradient(180deg,#a48b55,#746b42); box-shadow: 0 7px 22px rgba(0,0,0,.42); }
 .primary-btn.mmo-btn { background: linear-gradient(180deg,#9b8049,#665a36); font-size: 1.05rem; }
 .team-selector-box, .player-config-box, .instructions, .custom-server-box { background: rgba(9,15,10,.44); border: 1px solid rgba(196,161,92,.2); border-radius: 5px; }
-.team-toggle-btn { background: #18231a; border: 1px solid #536047; border-radius: 4px; color: #c5c5aa; font: 700 .75rem 'Cinzel',serif; }
+.team-toggle-btn { background: #18231a; border: 1px solid #536047; border-radius: 4px; color: #c5c5aa; font: 700 .75rem 'Nunito',sans-serif; }
 .team-toggle-btn.active { color: #f0d68a; border-color: var(--brass); background: rgba(196,161,92,.14); box-shadow: inset 0 0 12px rgba(196,161,92,.1); }
 .mini-team-btn, .team-respawn-btn { background: linear-gradient(180deg,#a58a50,#71613a) !important; color: #fff2ce !important; }
 .instructions, .player-config-box small, .team-lbl, .team-or, .custom-server-box label { color: #c2bea7; }
@@ -974,11 +974,11 @@ html, body { background: #111811; color: var(--parchment); font-family: 'Nunito'
 }
 #score-box .label, #score-val, .lb-title, #lb-list .lb-score, .compass-arrow, .compass-dist, .team-badge { color: var(--brass-light); }
 .lb-title, #score-box, .score-badge, #fps-badge, #room-info, .compass-name,
-.team-badge, .player-config-box h4, .hud-menu-btn { font-family: 'Cinzel',serif; }
+.team-badge, .player-config-box h4, .hud-menu-btn { font-family: 'Nunito',sans-serif; }
 .p1-badge, .p2-badge { border-color: #a88c52; }
 .p1-badge .p-name, .p2-badge .p-name { color: #d8ca9d; }
 .p1-badge .p-cm, .p2-badge .p-cm { text-shadow: 0 0 7px rgba(196,161,92,.5); }
-.gameover-card h2 { color: #d4bb7c; font: 700 1.65rem 'Cinzel',serif; text-shadow: 0 0 18px rgba(196,161,92,.24); }
+.gameover-card h2 { color: #d4bb7c; font: 700 1.65rem 'Nunito',sans-serif; text-shadow: 0 0 18px rgba(196,161,92,.24); }
 .gameover-card p { color: var(--muted-parchment); }
 .final-score-box { background: rgba(8,13,9,.55); border: 1px solid rgba(196,161,92,.25); }
 .final-score-box span { color: #d6c38f; }
@@ -988,4 +988,149 @@ html, body { background: #111811; color: var(--parchment); font-family: 'Nunito'
   .menu-card { padding: 22px 18px; border-radius: 6px; }
   .mode-tab { font-size: .65rem; padding: 9px 3px; }
   .menu-card::before { font-size: .55rem; letter-spacing: .12em; }
+}
+
+/* Full-screen menu layout with plain sans-serif typography */
+body, button, input, .logo-title, .mode-tab, .primary-btn, .secondary-btn,
+.team-toggle-btn, .team-badge, .lb-title, #score-box, .score-badge,
+#fps-badge, #room-info, .compass-name, .player-config-box h4,
+.gameover-card h2, .final-score-box span {
+  font-family: 'Nunito', sans-serif !important;
+}
+
+.menu-card {
+  width: 100vw;
+  height: 100dvh;
+  max-width: none;
+  max-height: none;
+  margin: 0;
+  padding: 82px 6vw 5vh;
+  overflow: hidden;
+  display: grid;
+  grid-template-columns: minmax(220px, .72fr) minmax(0, 1.7fr);
+  grid-template-rows: min-content min-content 1fr;
+  gap: 12px clamp(28px, 5vw, 88px);
+  border-width: 0;
+  border-radius: 0;
+  animation: none;
+}
+
+.menu-card::before {
+  position: absolute;
+  top: 28px;
+  left: 6vw;
+  margin: 0;
+  font-size: .68rem;
+  letter-spacing: .22em;
+}
+
+.menu-card .logo-title { grid-column: 1; grid-row: 1; align-self: end; font-size: clamp(2.5rem, 4vw, 4.25rem); }
+.menu-card > .tagline { grid-column: 1; grid-row: 2; margin: 0; max-width: 340px; line-height: 1.7; }
+
+.mode-tabs {
+  grid-column: 1;
+  grid-row: 3;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-self: stretch;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+
+.mode-tab {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+  min-height: 62px;
+  padding: 14px 18px;
+  border: 1px solid rgba(196,161,92,.25);
+  background: rgba(9,15,10,.42);
+  text-align: left;
+  font-size: .95rem;
+  letter-spacing: .04em;
+}
+
+.mode-tab span {
+  color: var(--brass-light);
+  font-size: .72rem;
+  font-weight: 900;
+  letter-spacing: .12em;
+  opacity: .7;
+}
+
+.mode-tab.active {
+  background: linear-gradient(100deg,rgba(147,120,68,.42),rgba(38,52,38,.62));
+  border-color: rgba(228,203,139,.65);
+  box-shadow: inset 3px 0 #d6bd7c, 0 8px 24px rgba(0,0,0,.22);
+}
+
+.menu-card > .tab-content {
+  grid-column: 2;
+  grid-row: 1 / span 3;
+  align-self: stretch;
+  width: 100%;
+  max-height: 100%;
+  overflow-y: auto;
+  border-left: 1px solid rgba(196,161,92,.25);
+  padding: 10px 0 10px clamp(26px,4vw,64px);
+  scrollbar-color: rgba(196,161,92,.55) rgba(8,13,9,.2);
+}
+
+#tab-mmo {
+  display: grid;
+  grid-template-columns: minmax(0,1fr) minmax(0,1fr);
+  align-content: center;
+  align-items: start;
+  gap: 18px 22px;
+}
+
+#tab-mmo > .input-group { grid-column: 1; margin: 0; }
+#tab-mmo > .skin-selector { grid-column: 2; margin: 0; align-self: center; }
+#tab-mmo > .team-selector-box { grid-column: 1; margin: 0; }
+#tab-mmo > .fps-selector { grid-column: 2; align-self: center; }
+#tab-mmo > .custom-server-box,
+#tab-mmo > .primary-btn,
+#tab-mmo > .status-msg,
+#tab-mmo > .instructions { grid-column: 1 / -1; }
+#tab-mmo > .instructions { margin: 0; }
+
+.gameover-card {
+  width: min(560px, 90vw);
+  height: auto;
+  min-height: 0;
+  max-height: 90vh;
+  padding: 42px;
+  display: block;
+  border-width: 1px;
+  border-radius: 8px;
+  overflow-y: auto;
+}
+
+.gameover-card::before { position: static; margin: -8px 0 18px; }
+
+@media (max-width: 760px) {
+  .menu-card {
+    height: 100dvh;
+    padding: 60px 22px 14px;
+    grid-template-columns: minmax(0,1fr);
+    grid-template-rows: min-content min-content min-content minmax(0,1fr);
+    gap: 8px;
+    overflow-y: auto;
+  }
+  .menu-card::before { top: 20px; left: 22px; font-size: .56rem; letter-spacing: .13em; }
+  .menu-card .logo-title { grid-column: 1; grid-row: 1; font-size: 2.35rem; }
+  .menu-card > .tagline { grid-column: 1; grid-row: 2; font-size: .8rem; }
+  .mode-tabs { grid-column: 1; grid-row: 3; flex-direction: row; gap: 6px; }
+  .mode-tab { min-height: 48px; justify-content: center; gap: 6px; padding: 8px 6px; font-size: .76rem; }
+  .mode-tab span { font-size: .62rem; }
+  .menu-card > .tab-content { grid-column: 1; grid-row: 4; border-left: 0; border-top: 1px solid rgba(196,161,92,.25); padding: 16px 0 20px; }
+  #tab-mmo { grid-template-columns: minmax(0,1fr); gap: 12px; align-content: start; }
+  #tab-mmo > * { grid-column: 1 !important; }
+  #tab-mmo > .skin-selector { align-self: start; }
+  .gameover-card { width: min(560px, 92vw); height: auto; padding: 30px 22px; }
 }
