@@ -26,6 +26,17 @@ BOOST_SPEED = 460.0 # units per sec
 INITIAL_SCORE = 15
 MAX_FOOD = 700
 VIEW_DISTANCE = 1600
+MAX_WS_FRAME_SIZE = 2 * 1024 * 1024
+
+def recv_exact(sock, size):
+    """Read exactly size bytes, or return None if the connection closes."""
+    chunks = bytearray()
+    while len(chunks) < size:
+        chunk = sock.recv(size - len(chunks))
+        if not chunk:
+            return None
+        chunks.extend(chunk)
+    return chunks
 
 def get_local_ip():
     try:
@@ -61,8 +72,8 @@ def ws_handshake(sock, headers):
 
 def ws_read_frame(sock):
     try:
-        head = sock.recv(2)
-        if not head or len(head) < 2:
+        head = recv_exact(sock, 2)
+        if head is None:
             return None, None
         b1, b2 = head[0], head[1]
         opcode = b1 & 0x0f
@@ -70,24 +81,24 @@ def ws_read_frame(sock):
         payload_len = b2 & 0x7f
 
         if payload_len == 126:
-            ext = sock.recv(2)
-            if len(ext) < 2: return None, None
+            ext = recv_exact(sock, 2)
+            if ext is None: return None, None
             payload_len = struct.unpack(">H", ext)[0]
         elif payload_len == 127:
-            ext = sock.recv(8)
-            if len(ext) < 8: return None, None
+            ext = recv_exact(sock, 8)
+            if ext is None: return None, None
             payload_len = struct.unpack(">Q", ext)[0]
+
+        if payload_len > MAX_WS_FRAME_SIZE:
+            return None, None
 
         mask = None
         if masked:
-            mask = sock.recv(4)
-            if len(mask) < 4: return None, None
+            mask = recv_exact(sock, 4)
+            if mask is None: return None, None
 
-        data = bytearray()
-        while len(data) < payload_len:
-            chunk = sock.recv(min(4096, payload_len - len(data)))
-            if not chunk: return None, None
-            data.extend(chunk)
+        data = recv_exact(sock, payload_len)
+        if data is None: return None, None
 
         if masked and mask:
             for i in range(len(data)):
@@ -336,9 +347,9 @@ class SlutterWorld:
             p.respawn(spawn_x, spawn_y, spawn_angle)
 
     def game_loop(self):
-        last_time = time.time()
+        last_time = time.monotonic()
         while self.running:
-            now = time.time()
+            now = time.monotonic()
             dt = now - last_time
             last_time = now
             dt = min(max(dt, 0.001), 0.1)
@@ -405,96 +416,92 @@ class SlutterWorld:
                         is_sperm
                     ))
 
-                # Broadcast snapshot
-                self.broadcast_world()
+            # Network writes happen after releasing the simulation lock.
+            self.broadcast_world()
 
-            elapsed = time.time() - now
+            elapsed = time.monotonic() - now
             sleep_time = max(0.002, 0.04 - elapsed)
             time.sleep(sleep_time)
 
     def broadcast_world(self):
-        snakes_data = []
+        outbox = []
+        with self.lock:
+            players = list(self.players.values())
+            snakes_data = []
+            team_scores = {}
 
-        # Calculate Team Leaderboards
-        team_scores = {}
-        for p in self.players.values():
-            t_key = p.team_code
-            if t_key not in team_scores:
-                team_scores[t_key] = {
-                    "teamCode": t_key,
-                    "isSolo": t_key.startswith("SOLO_"),
+            for p in players:
+                team = team_scores.setdefault(p.team_code, {
+                    "teamCode": p.team_code,
+                    "isSolo": p.team_code.startswith("SOLO_"),
                     "totalScore": 0,
                     "members": []
-                }
-            team_scores[t_key]["totalScore"] += p.score
-            team_scores[t_key]["members"].append([p.name, round(p.score), p.pid])
-
-            if not p.dead:
-                snakes_data.append({
-                    "id": p.pid,
-                    "name": p.name,
-                    "skin": p.skin_idx,
-                    "team": p.team_code,
-                    "x": round(p.x),
-                    "y": round(p.y),
-                    "angle": round(p.angle, 2),
-                    "score": round(p.score, 1),
-                    "boost": p.is_boosting,
-                    "segs": [[round(pt[0]), round(pt[1])] for pt in p.segments]
                 })
+                team["totalScore"] += p.score
+                team["members"].append([p.name, round(p.score), p.pid])
 
-        sorted_teams = sorted(team_scores.values(), key=lambda t: t["totalScore"], reverse=True)[:8]
+                if not p.dead:
+                    snakes_data.append({
+                        "id": p.pid,
+                        "name": p.name,
+                        "skin": p.skin_idx,
+                        "team": p.team_code,
+                        "x": round(p.x),
+                        "y": round(p.y),
+                        "angle": round(p.angle, 2),
+                        "score": round(p.score, 1),
+                        "boost": p.is_boosting,
+                        "segs": [[round(pt[0]), round(pt[1])] for pt in p.segments]
+                    })
 
-        view_sq = VIEW_DISTANCE * VIEW_DISTANCE
+            sorted_teams = sorted(team_scores.values(), key=lambda t: t["totalScore"], reverse=True)[:8]
+            view_sq = VIEW_DISTANCE * VIEW_DISTANCE
 
-        for p in list(self.players.values()):
-            nearby_foods = []
-            px, py = p.x, p.y
-            for f in self.foods:
-                dx = f.x - px
-                dy = f.y - py
-                if dx*dx + dy*dy <= view_sq:
-                    nearby_foods.append([
-                        round(f.x),
-                        round(f.y),
-                        round(f.value, 1),
-                        1 if f.is_sperm else 0,
-                        f.color
-                    ])
+            for p in players:
+                nearby_foods = []
+                for food in self.foods:
+                    dx = food.x - p.x
+                    dy = food.y - p.y
+                    if dx * dx + dy * dy <= view_sq:
+                        nearby_foods.append([
+                            round(food.x), round(food.y), round(food.value, 1),
+                            1 if food.is_sperm else 0, food.color
+                        ])
 
-            # Find teammate information
-            teammate_info = None
-            if p.team_code and not p.team_code.startswith("SOLO_"):
-                for other in self.players.values():
-                    if other.pid != p.pid and other.team_code == p.team_code:
-                        teammate_info = {
-                            "id": other.pid,
-                            "name": other.name,
-                            "x": round(other.x),
-                            "y": round(other.y),
-                            "angle": round(other.angle, 2),
-                            "score": round(other.score, 1),
-                            "dead": other.dead
-                        }
-                        break
+                teammate = next((other for other in players
+                                 if other.pid != p.pid and other.team_code == p.team_code), None)
+                teammate_info = None
+                if teammate and not p.team_code.startswith("SOLO_"):
+                    teammate_info = {
+                        "id": teammate.pid,
+                        "name": teammate.name,
+                        "x": round(teammate.x),
+                        "y": round(teammate.y),
+                        "angle": round(teammate.angle, 2),
+                        "score": round(teammate.score, 1),
+                        "dead": teammate.dead
+                    }
 
-            payload = {
-                "type": "world",
-                "myId": p.pid,
-                "myTeam": p.team_code,
-                "myScore": round(p.score, 1),
-                "isDead": p.dead,
-                "cam": {"x": round(p.x), "y": round(p.y), "score": round(p.score, 1)},
-                "teammate": teammate_info,
-                "snakes": snakes_data,
-                "foods": nearby_foods,
-                "teamsLb": sorted_teams
-            }
-            msg = json.dumps(payload)
-            success = ws_send_text(p.sock, msg)
-            if not success and p.sock:
-                try: p.sock.close()
-                except Exception: pass
+                payload = {
+                    "type": "world",
+                    "myId": p.pid,
+                    "myTeam": p.team_code,
+                    "myScore": round(p.score, 1),
+                    "isDead": p.dead,
+                    "cam": {"x": round(p.x), "y": round(p.y), "score": round(p.score, 1)},
+                    "teammate": teammate_info,
+                    "snakes": snakes_data,
+                    "foods": nearby_foods,
+                    "teamsLb": sorted_teams
+                }
+                outbox.append((p.sock, json.dumps(payload)))
+
+        for sock, message in outbox:
+            if not ws_send_text(sock, message):
+                try:
+                    sock.close()
+                except Exception:
+                    pass
 
 WORLD = SlutterWorld()
 

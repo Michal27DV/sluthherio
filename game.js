@@ -111,76 +111,76 @@ const sounds = new SoundController();
 // --- Skin Palettes ---
 const SKINS = [
   {
-    name: 'Klasik',
-    body: '#fbc3b5',
-    glans: '#ff7b90',
-    outline: '#c2796c',
-    vein: '#d8627b',
-    ball: '#f5b5a7'
+    name: 'Lesní šupina',
+    body: '#547d48',
+    glans: '#8ebc61',
+    outline: '#243f2b',
+    vein: '#a8c979',
+    ball: '#405f38'
   },
   {
-    name: 'Opálený',
-    body: '#d89b6c',
-    glans: '#cf6361',
-    outline: '#965b36',
-    vein: '#9e3b4a',
-    ball: '#cb8e5f'
+    name: 'Měděný drak',
+    body: '#a95f36',
+    glans: '#d8894c',
+    outline: '#57351e',
+    vein: '#e5ad69',
+    ball: '#78432c'
   },
   {
-    name: 'Čokoláda',
-    body: '#704229',
-    glans: '#552e1a',
-    outline: '#422111',
-    vein: '#4e2815',
-    ball: '#663922'
+    name: 'Obsidián',
+    body: '#333b48',
+    glans: '#59697a',
+    outline: '#171d27',
+    vein: '#8395a4',
+    ball: '#252e3a'
   },
   {
-    name: 'Neon Pink',
-    body: '#ff66c4',
-    glans: '#ff1493',
-    outline: '#b3006b',
-    vein: '#ffffff',
-    ball: '#ff4da6'
+    name: 'Královský ametyst',
+    body: '#7957a5',
+    glans: '#aa82d4',
+    outline: '#34254d',
+    vein: '#d7c2f0',
+    ball: '#594071'
   },
   {
-    name: 'Hulk / Alien',
-    body: '#70e000',
-    glans: '#38b000',
-    outline: '#007200',
-    vein: '#ccff33',
-    ball: '#5bb800'
+    name: 'Bažinný jed',
+    body: '#718c3c',
+    glans: '#a7bc50',
+    outline: '#36431e',
+    vein: '#d3dc7b',
+    ball: '#556d34'
   },
   {
-    name: 'Lilek Fialový',
-    body: '#9d4edd',
-    glans: '#7b2cbf',
-    outline: '#3c096c',
-    vein: '#e0aaff',
-    ball: '#8b38cb'
+    name: 'Ledový wyrm',
+    body: '#4d8190',
+    glans: '#83c1c8',
+    outline: '#244754',
+    vein: '#b9e5df',
+    ball: '#3d6773'
   },
   {
-    name: 'Zlatý Titan',
-    body: '#ffd166',
-    glans: '#ff9e00',
-    outline: '#d48b00',
-    vein: '#ffffff',
-    ball: '#e5b84c'
+    name: 'Zlatý gryf',
+    body: '#bd963e',
+    glans: '#e2c56b',
+    outline: '#67501e',
+    vein: '#f3e0a0',
+    ball: '#947438'
   },
   {
-    name: 'Mrazivý Modrák',
-    body: '#00b4d8',
-    glans: '#0077b6',
-    outline: '#03045e',
-    vein: '#caf0f8',
-    ball: '#0096c7'
+    name: 'Šarlatový rytíř',
+    body: '#9e4140',
+    glans: '#d66d55',
+    outline: '#4f2528',
+    vein: '#e5a078',
+    ball: '#743336'
   }
 ];
 
 const BOT_NAMES = [
-  'Šulinátor 3000', 'Dlouhý Jan', 'Valibuk', 'Slim Shady', 'Bohumil',
-  'Titan XXL', 'Anakonda', 'Mikro-Péťa', 'TurboKlobása', 'Karel ze vsi',
-  'Cik-Cak', 'Velký Šéf', 'Kladivo', 'Rocco Siffredi', 'Párkař',
-  'Generál Žalud', 'Větroplach', 'Pérodráp', 'Růžový Panter', 'Monstrum'
+  'Sir Šupina', 'Zelený drak', 'Rytíř z Dubu', 'Královský wyrm', 'Bohumil z Hvozdu',
+  'Železný ještěr', 'Měděný strážce', 'Tichý bazilišek', 'Baron Ostrohřbet', 'Karel z Údolí',
+  'Císařský drak', 'Pan z Černé věže', 'Stříbrný chřtán', 'Sir Salamandr', 'Hradní hlídač',
+  'Generál Šupináč', 'Lesní přízrak', 'Zlatý gryf', 'Růžový wyrm', 'Poslední strážce'
 ];
 
 const WORLD_RADIUS = 2800;
@@ -223,7 +223,7 @@ class Food {
   }
 
   randomColor() {
-    const palette = ['#ff4d94', '#ffd166', '#06d6a0', '#118ab2', '#ff99c8', '#ffffff', '#e0aaff'];
+    const palette = ['#d7bd73', '#a5b674', '#819b87', '#c68b53', '#d5cfad', '#b88c61', '#8ebbc0'];
     return palette[Math.floor(Math.random() * palette.length)];
   }
 
@@ -250,10 +250,10 @@ class Food {
       ctx.rotate(this.swimAngle);
       const glow = 4 + Math.sin(this.pulse) * 2;
       ctx.shadowBlur = glow;
-      ctx.shadowColor = '#ffffff';
+      ctx.shadowColor = '#e4cb8b';
 
       ctx.beginPath();
-      ctx.strokeStyle = 'rgba(255, 255, 255, 0.7)';
+      ctx.strokeStyle = 'rgba(228, 203, 139, 0.78)';
       ctx.lineWidth = 2;
       ctx.moveTo(0, 0);
       const tailLen = this.radius * 3.5;
@@ -263,8 +263,12 @@ class Food {
       ctx.stroke();
 
       ctx.beginPath();
-      ctx.fillStyle = '#ffffff';
-      ctx.ellipse(0, 0, this.radius, this.radius * 0.7, 0, 0, Math.PI * 2);
+      ctx.fillStyle = '#e4cb8b';
+      ctx.moveTo(this.radius, 0);
+      ctx.lineTo(0, this.radius * 0.72);
+      ctx.lineTo(-this.radius, 0);
+      ctx.lineTo(0, -this.radius * 0.72);
+      ctx.closePath();
       ctx.fill();
     } else {
       const r = this.radius + Math.sin(this.pulse) * 1.2;
@@ -275,9 +279,9 @@ class Food {
       ctx.arc(0, 0, Math.max(1, r), 0, Math.PI * 2);
       ctx.fill();
 
-      ctx.fillStyle = '#ffffff';
+      ctx.fillStyle = '#f1e5bb';
       ctx.beginPath();
-      ctx.arc(-r * 0.25, -r * 0.25, Math.max(1, r * 0.35), 0, Math.PI * 2);
+      ctx.arc(-r * 0.25, -r * 0.25, Math.max(1, r * 0.28), 0, Math.PI * 2);
       ctx.fill();
     }
 
@@ -448,9 +452,9 @@ class PenisSnake {
     for (let s of snakes) {
       if (s === this || s.dead) continue;
 
+      const sRad = s.getRadius();
       for (let i = 0; i < s.segments.length; i += 3) {
         const seg = s.segments[i];
-        const sRad = s.getRadius();
         if (distSq(probeX, probeY, seg.x, seg.y) < (headRadius + sRad + 25) ** 2) {
           dangerFound = true;
           const toDanger = Math.atan2(seg.y - this.y, seg.x - this.x);
@@ -512,218 +516,155 @@ class PenisSnake {
   }
 
   draw(ctx, isMyTeammate = false) {
+    this.drawLizard(ctx, isMyTeammate);
+  }
+
+  drawLizard(ctx, isMyTeammate = false) {
     if (this.dead || this.segments.length === 0) return;
 
     const radius = this.getRadius();
     const skin = this.skin;
-    const len = this.segments.length;
+    const segments = this.segments;
+    const len = segments.length;
+    const outline = isMyTeammate ? '#f0d68a' : skin.outline;
 
-    // If Teammate, draw a special team halo around the snake
-    if (isMyTeammate) {
-      ctx.save();
-      ctx.strokeStyle = 'rgba(255, 209, 102, 0.45)';
-      ctx.lineWidth = radius * 2.6;
-      ctx.lineCap = 'round';
-      ctx.lineJoin = 'round';
+    // Draw a single winding body first, then lay the scales over it.
+    ctx.save();
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    ctx.beginPath();
+    ctx.moveTo(segments[0].x, segments[0].y);
+    for (let i = 1; i < len; i++) ctx.lineTo(segments[i].x, segments[i].y);
+    ctx.strokeStyle = outline;
+    ctx.lineWidth = radius * 1.55;
+    ctx.stroke();
+
+    const bodyGradient = ctx.createLinearGradient(
+      this.x - radius, this.y - radius, this.x + radius, this.y + radius
+    );
+    bodyGradient.addColorStop(0, skin.vein);
+    bodyGradient.addColorStop(0.5, skin.body);
+    bodyGradient.addColorStop(1, skin.outline);
+    ctx.strokeStyle = bodyGradient;
+    ctx.lineWidth = radius * 1.32;
+    ctx.stroke();
+
+    // Repeating scale marks catch the light like small rows of armor.
+    ctx.lineWidth = Math.max(1.2, radius * 0.09);
+    for (let i = 3; i < len - 2; i += 3) {
+      const p = segments[i];
+      const before = segments[i - 1];
+      const after = segments[i + 1];
+      const angle = Math.atan2(after.y - before.y, after.x - before.x);
+      const nx = -Math.sin(angle);
+      const ny = Math.cos(angle);
+      const scaleRadius = radius * (0.5 + 0.36 * (1 - i / len));
+      ctx.strokeStyle = i % 2 ? 'rgba(238, 220, 163, 0.43)' : 'rgba(20, 35, 25, 0.34)';
       ctx.beginPath();
-      for (let i = 0; i < len; i += 2) {
-        const p = this.segments[i];
-        if (i === 0) ctx.moveTo(p.x, p.y);
-        else ctx.lineTo(p.x, p.y);
-      }
+      ctx.moveTo(p.x - nx * scaleRadius, p.y - ny * scaleRadius);
+      ctx.quadraticCurveTo(
+        p.x + Math.cos(angle) * scaleRadius * 0.35,
+        p.y + Math.sin(angle) * scaleRadius * 0.35,
+        p.x + nx * scaleRadius,
+        p.y + ny * scaleRadius
+      );
       ctx.stroke();
-      ctx.restore();
     }
 
-    // 1. BALLS / TESTICLES
+    // A tapered armored tail with a small crest at its tip.
     if (len > 3) {
-      const tailSeg = this.segments[len - 1];
-      const prevSeg = this.segments[len - 2] || tailSeg;
-      const tailAngle = Math.atan2(tailSeg.y - prevSeg.y, tailSeg.x - prevSeg.x);
-
-      const ballRadius = radius * 1.25;
-      const perpAngle = tailAngle + Math.PI / 2;
-      const offsetDist = radius * 0.95;
-
-      const leftX = tailSeg.x + Math.cos(perpAngle) * offsetDist;
-      const leftY = tailSeg.y + Math.sin(perpAngle) * offsetDist;
-      const rightX = tailSeg.x - Math.cos(perpAngle) * offsetDist;
-      const rightY = tailSeg.y - Math.sin(perpAngle) * offsetDist;
-
-      const drawBall = (bx, by) => {
-        ctx.save();
-        ctx.shadowColor = 'rgba(0,0,0,0.25)';
-        ctx.shadowBlur = 6;
-        ctx.fillStyle = skin.ball;
-        ctx.strokeStyle = isMyTeammate ? '#ffd166' : skin.outline;
-        ctx.lineWidth = isMyTeammate ? 3.5 : 3;
-
-        ctx.beginPath();
-        ctx.arc(bx, by, ballRadius, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.stroke();
-
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.25)';
-        ctx.beginPath();
-        ctx.arc(bx - ballRadius * 0.28, by - ballRadius * 0.28, ballRadius * 0.42, 0, Math.PI * 2);
-        ctx.fill();
-
-        ctx.strokeStyle = skin.outline;
-        ctx.lineWidth = 1.5;
-        for (let h = 0; h < 2; h++) {
-          const hAngle = tailAngle + Math.PI + (h === 0 ? 0.4 : -0.4);
-          const hStartX = bx + Math.cos(hAngle) * (ballRadius - 1);
-          const hStartY = by + Math.sin(hAngle) * (ballRadius - 1);
-          ctx.beginPath();
-          ctx.moveTo(hStartX, hStartY);
-          ctx.quadraticCurveTo(
-            hStartX + Math.cos(hAngle) * 8 + (h === 0 ? 3 : -3),
-            hStartY + Math.sin(hAngle) * 8,
-            hStartX + Math.cos(hAngle) * 12,
-            hStartY + Math.sin(hAngle) * 12
-          );
-          ctx.stroke();
-        }
-        ctx.restore();
-      };
-
-      drawBall(leftX, leftY);
-      drawBall(rightX, rightY);
-    }
-
-    // 2. SHAFT SEGMENTS
-    for (let i = len - 1; i >= 1; i--) {
-      const seg = this.segments[i];
-      const taper = 0.85 + (1 - i / len) * 0.25;
-      const segRad = radius * taper;
-
+      const tail = segments[len - 1];
+      const previous = segments[len - 3];
+      const tailAngle = Math.atan2(tail.y - previous.y, tail.x - previous.x);
       ctx.save();
-      ctx.fillStyle = skin.body;
-      ctx.strokeStyle = isMyTeammate ? '#ffd166' : skin.outline;
-      ctx.lineWidth = isMyTeammate ? 3.5 : 3;
-
+      ctx.translate(tail.x, tail.y);
+      ctx.rotate(tailAngle);
+      ctx.fillStyle = skin.glans;
+      ctx.strokeStyle = outline;
+      ctx.lineWidth = 2;
       ctx.beginPath();
-      ctx.arc(seg.x, seg.y, segRad, 0, Math.PI * 2);
+      ctx.moveTo(-radius * 0.65, -radius * 0.45);
+      ctx.lineTo(radius * 0.8, 0);
+      ctx.lineTo(-radius * 0.65, radius * 0.45);
+      ctx.closePath();
       ctx.fill();
       ctx.stroke();
-
-      if (i % 4 === 0 && i < len - 2) {
-        const nextSeg = this.segments[i - 1];
-        ctx.strokeStyle = skin.vein;
-        ctx.lineWidth = 2.2;
-        ctx.beginPath();
-        ctx.moveTo(seg.x, seg.y);
-        const midX = (seg.x + nextSeg.x) / 2 + Math.sin(i) * 3;
-        const midY = (seg.y + nextSeg.y) / 2 + Math.cos(i) * 3;
-        ctx.quadraticCurveTo(midX, midY, nextSeg.x, nextSeg.y);
-        ctx.stroke();
-      }
-
       ctx.restore();
     }
 
-    // 3. GLANS & FACE
-    const head = this.segments[0];
-    const headAngle = this.angle;
-
+    // Broad drake head, facing the direction of travel.
+    const head = segments[0];
     ctx.save();
     ctx.translate(head.x, head.y);
-    ctx.rotate(headAngle);
-
-    const glansRadius = radius * 1.28;
+    ctx.rotate(this.angle);
+    const headLength = radius * 1.95;
+    const headWidth = radius * 1.22;
     ctx.fillStyle = skin.glans;
-    ctx.strokeStyle = isMyTeammate ? '#ffd166' : skin.outline;
-    ctx.lineWidth = isMyTeammate ? 4 : 3.5;
-
+    ctx.strokeStyle = outline;
+    ctx.lineWidth = isMyTeammate ? 3.5 : 2.8;
     ctx.beginPath();
-    ctx.moveTo(-glansRadius * 0.3, -glansRadius * 0.95);
-    ctx.bezierCurveTo(
-      glansRadius * 0.3, -glansRadius * 1.05,
-      glansRadius * 0.9, -glansRadius * 0.65,
-      glansRadius * 1.25, 0
-    );
-    ctx.bezierCurveTo(
-      glansRadius * 0.9, glansRadius * 0.65,
-      glansRadius * 0.3, glansRadius * 1.05,
-      -glansRadius * 0.3, glansRadius * 0.95
-    );
-    ctx.quadraticCurveTo(-glansRadius * 0.1, 0, -glansRadius * 0.3, -glansRadius * 0.95);
+    ctx.moveTo(headLength, 0);
+    ctx.quadraticCurveTo(headLength * 0.62, headWidth * 0.82, radius * 0.02, headWidth);
+    ctx.lineTo(-radius * 0.62, headWidth * 0.58);
+    ctx.lineTo(-radius * 0.62, -headWidth * 0.58);
+    ctx.lineTo(radius * 0.02, -headWidth);
+    ctx.quadraticCurveTo(headLength * 0.62, -headWidth * 0.82, headLength, 0);
     ctx.closePath();
     ctx.fill();
     ctx.stroke();
 
-    // Slit
-    ctx.strokeStyle = skin.outline;
-    ctx.lineWidth = 3;
-    ctx.beginPath();
-    ctx.moveTo(glansRadius * 1.05, -glansRadius * 0.35);
-    ctx.lineTo(glansRadius * 1.05, glansRadius * 0.35);
-    ctx.stroke();
-
-    // Glint
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.35)';
-    ctx.beginPath();
-    ctx.ellipse(glansRadius * 0.45, -glansRadius * 0.35, glansRadius * 0.4, glansRadius * 0.18, -0.3, 0, Math.PI * 2);
-    ctx.fill();
-
-    // Eyes
-    const isBlinking = Math.sin(this.blinkTime) > 0.96;
-    const eyeSpacing = glansRadius * 0.45;
-    const eyeX = glansRadius * 0.2;
-    const eyeRadius = glansRadius * 0.28;
-
-    [-1, 1].forEach(side => {
-      const ey = side * eyeSpacing;
-      ctx.fillStyle = '#ffffff';
-      ctx.strokeStyle = '#000000';
-      ctx.lineWidth = 2;
+    // Brow horns and bright reptile eyes.
+    for (const side of [-1, 1]) {
+      ctx.fillStyle = skin.vein;
       ctx.beginPath();
-      ctx.arc(eyeX, ey, eyeRadius, 0, Math.PI * 2);
+      ctx.moveTo(-radius * 0.42, side * radius * 0.55);
+      ctx.quadraticCurveTo(-radius * 1.05, side * radius * 1.2, radius * 0.02, side * radius * 0.82);
+      ctx.closePath();
       ctx.fill();
       ctx.stroke();
 
-      if (isBlinking) {
-        ctx.strokeStyle = '#000000';
-        ctx.lineWidth = 2.5;
-        ctx.beginPath();
-        ctx.moveTo(eyeX - eyeRadius * 0.8, ey);
-        ctx.lineTo(eyeX + eyeRadius * 0.8, ey);
-        ctx.stroke();
-      } else {
-        const pupilRadius = eyeRadius * 0.52;
-        const pupilOffset = eyeRadius * 0.32;
-        ctx.fillStyle = '#000000';
-        ctx.beginPath();
-        ctx.arc(eyeX + pupilOffset, ey, pupilRadius, 0, Math.PI * 2);
-        ctx.fill();
-
-        ctx.fillStyle = '#ffffff';
-        ctx.beginPath();
-        ctx.arc(eyeX + pupilOffset + 1.5, ey - 1.5, pupilRadius * 0.35, 0, Math.PI * 2);
-        ctx.fill();
-      }
-    });
-
-    ctx.restore();
-
-    // Name tag above head
-    ctx.save();
-    ctx.font = 'bold 13px Nunito, sans-serif';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'bottom';
-
-    if (this.isPlayer) {
-      ctx.fillStyle = this.playerIndex === 2 ? '#ffd166' : '#06d6a0';
-    } else if (isMyTeammate) {
-      ctx.fillStyle = '#ffd166'; // Golden for teammate
-    } else {
-      ctx.fillStyle = '#ffffff';
+      ctx.fillStyle = '#f5e8bd';
+      ctx.beginPath();
+      ctx.ellipse(radius * 0.38, side * radius * 0.48, radius * 0.24, radius * 0.17, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+      ctx.fillStyle = '#20271e';
+      ctx.beginPath();
+      ctx.ellipse(radius * 0.48, side * radius * 0.48, radius * 0.07, radius * 0.14, 0, 0, Math.PI * 2);
+      ctx.fill();
     }
 
-    ctx.shadowColor = '#000000';
-    ctx.shadowBlur = 4;
-    const tag = isMyTeammate ? `👑 ${this.name}` : this.name;
-    ctx.fillText(tag, head.x, head.y - radius * 1.5);
+    ctx.strokeStyle = 'rgba(30, 39, 28, 0.7)';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(radius * 1.02, -radius * 0.12);
+    ctx.lineTo(radius * 1.02, radius * 0.12);
+    ctx.stroke();
+
+    // Teammates carry a small gold crest.
+    if (isMyTeammate || this.isPlayer) {
+      ctx.fillStyle = isMyTeammate ? '#f0d68a' : '#d7e2ad';
+      ctx.beginPath();
+      ctx.moveTo(-radius * 0.35, -radius * 0.92);
+      ctx.lineTo(-radius * 0.72, -radius * 1.72);
+      ctx.lineTo(-radius * 0.05, -radius * 1.25);
+      ctx.lineTo(radius * 0.38, -radius * 1.78);
+      ctx.lineTo(radius * 0.48, -radius * 0.8);
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+    }
+    ctx.restore();
+    ctx.restore();
+
+    ctx.save();
+    ctx.font = '700 13px Cinzel, serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'bottom';
+    ctx.fillStyle = isMyTeammate ? '#f0d68a' : '#f4eedb';
+    ctx.shadowColor = '#10150f';
+    ctx.shadowBlur = 5;
+    ctx.fillText(this.name, head.x, head.y - radius * 1.8);
     ctx.restore();
   }
 }
@@ -804,6 +745,8 @@ class Game {
     this.fpsFrameCount = 0;
     this.fpsLastSampleTime = performance.now();
     this.currentFpsDisplay = 60;
+    this.lastLeaderboardUpdate = 0;
+    this.leaderboardInterval = 250;
 
     // Game state
     this.currentMode = 'mmo';
@@ -1341,7 +1284,9 @@ class Game {
     }
 
     // Team Leaderboard
-    if (data.teamsLb) {
+    const now = performance.now();
+    if (data.teamsLb && now - this.lastLeaderboardUpdate >= this.leaderboardInterval) {
+      this.lastLeaderboardUpdate = now;
       this.lbList.innerHTML = '';
       this.lbHeader.textContent = '🏆 Žebříček týmů';
 
@@ -1587,8 +1532,8 @@ class Game {
 
   startLocal2P() {
     this.currentMode = 'local2p';
-    const nick1 = this.p1Nick.value.trim() || 'Macko 1';
-    const nick2 = this.p2Nick.value.trim() || 'Macko 2';
+    const nick1 = this.p1Nick.value.trim() || 'Rytíř 1';
+    const nick2 = this.p2Nick.value.trim() || 'Rytíř 2';
     const skin1 = SKINS[this.p1SkinIdx];
     const skin2 = SKINS[this.p2SkinIdx];
 
@@ -1740,15 +1685,24 @@ class Game {
     }
 
     // Leaderboard
-    const sorted = [...this.snakes].sort((a, b) => b.score - a.score).slice(0, 8);
-    this.lbList.innerHTML = '';
-    this.lbHeader.textContent = '🏆 Žebříček největších';
-    sorted.forEach((s, idx) => {
-      const li = document.createElement('li');
-      if (s.isPlayer) li.classList.add(s.playerIndex === 2 ? 'p2' : 'me');
-      li.innerHTML = `<span class="lb-name">${idx + 1}. ${s.name}</span><span class="lb-score">${(10 + s.score * 0.16).toFixed(0)}cm</span>`;
-      this.lbList.appendChild(li);
-    });
+    if (now - this.lastLeaderboardUpdate >= this.leaderboardInterval) {
+      this.lastLeaderboardUpdate = now;
+      const sorted = this.snakes.slice().sort((a, b) => b.score - a.score).slice(0, 8);
+      const items = sorted.map((snake, idx) => {
+        const li = document.createElement('li');
+        if (snake.isPlayer) li.classList.add(snake.playerIndex === 2 ? 'p2' : 'me');
+        const name = document.createElement('span');
+        name.className = 'lb-name';
+        name.textContent = `${idx + 1}. ${snake.name}`;
+        const score = document.createElement('span');
+        score.className = 'lb-score';
+        score.textContent = `${(10 + snake.score * 0.16).toFixed(0)}cm`;
+        li.append(name, score);
+        return li;
+      });
+      this.lbHeader.textContent = '🏆 Žebříček největších';
+      this.lbList.replaceChildren(...items);
+    }
 
     this.renderWorld(this.snakes, this.foods);
     this.drawMinimap();
@@ -1769,24 +1723,24 @@ class Game {
     mCtx.clearRect(0, 0, w, h);
 
     // Radar Dark Circular Background
-    mCtx.fillStyle = 'rgba(15, 11, 30, 0.92)';
+    mCtx.fillStyle = 'rgba(18, 28, 20, 0.94)';
     mCtx.beginPath();
     mCtx.arc(cx, cy, mapRadius, 0, Math.PI * 2);
     mCtx.fill();
 
-    mCtx.strokeStyle = 'rgba(255, 77, 148, 0.2)';
+    mCtx.strokeStyle = 'rgba(196, 161, 92, 0.25)';
     mCtx.lineWidth = 1;
     mCtx.beginPath();
     mCtx.arc(cx, cy, mapRadius * 0.5, 0, Math.PI * 2);
     mCtx.stroke();
 
-    mCtx.strokeStyle = '#ff3366';
+    mCtx.strokeStyle = '#b89656';
     mCtx.lineWidth = 2.5;
     mCtx.beginPath();
     mCtx.arc(cx, cy, mapRadius, 0, Math.PI * 2);
     mCtx.stroke();
 
-    mCtx.strokeStyle = 'rgba(255, 255, 255, 0.08)';
+    mCtx.strokeStyle = 'rgba(232, 223, 196, 0.12)';
     mCtx.beginPath();
     mCtx.moveTo(cx, cy - mapRadius);
     mCtx.lineTo(cx, cy + mapRadius);
@@ -1815,8 +1769,8 @@ class Game {
         mCtx.arc(mx, my, ringRad, 0, Math.PI * 2);
         mCtx.stroke();
 
-        mCtx.fillStyle = '#06d6a0';
-        mCtx.shadowColor = '#06d6a0';
+        mCtx.fillStyle = '#b8c78a';
+        mCtx.shadowColor = '#b8c78a';
         mCtx.shadowBlur = 8;
         mCtx.beginPath();
         mCtx.arc(mx, my, 5, 0, Math.PI * 2);
@@ -1833,14 +1787,14 @@ class Game {
       } else if (isMyTeammate) {
         // --- DRAW TEAMMATE (Bright Golden Crown/Star + Name) ---
         const teamRingRad = 6.0 + Math.sin(pulseTime * 2.5) * 3.0;
-        mCtx.strokeStyle = '#ffd166';
+        mCtx.strokeStyle = '#e4cb8b';
         mCtx.lineWidth = 2;
         mCtx.beginPath();
         mCtx.arc(mx, my, teamRingRad, 0, Math.PI * 2);
         mCtx.stroke();
 
-        mCtx.fillStyle = '#ffd166';
-        mCtx.shadowColor = '#ffd166';
+        mCtx.fillStyle = '#e4cb8b';
+        mCtx.shadowColor = '#e4cb8b';
         mCtx.shadowBlur = 10;
         mCtx.beginPath();
         mCtx.arc(mx, my, 5.5, 0, Math.PI * 2);
@@ -1849,7 +1803,7 @@ class Game {
 
         mCtx.save();
         mCtx.font = 'bold 10px Fredoka One, cursive';
-        mCtx.fillStyle = '#ffd166';
+        mCtx.fillStyle = '#e4cb8b';
         mCtx.textAlign = 'center';
         mCtx.textBaseline = 'bottom';
         mCtx.shadowColor = '#000000';
@@ -1859,7 +1813,7 @@ class Game {
 
       } else {
         // --- DRAW OTHER PLAYERS ---
-        const color = s.skin ? s.skin.glans : '#ff99c8';
+        const color = s.skin ? s.skin.glans : '#a5b674';
 
         mCtx.fillStyle = color;
         mCtx.shadowColor = color;
@@ -1889,33 +1843,50 @@ class Game {
 
   drawGrid() {
     const ctx = this.ctx;
-    const gridSize = 70;
-    const startX = Math.floor((this.camera.x - this.width / 2 / this.camera.zoom) / gridSize) * gridSize;
-    const endX = this.camera.x + this.width / 2 / this.camera.zoom;
-    const startY = Math.floor((this.camera.y - this.height / 2 / this.camera.zoom) / gridSize) * gridSize;
-    const endY = this.camera.y + this.height / 2 / this.camera.zoom;
+    const radius = 46;
+    const columnStep = radius * 1.5;
+    const rowStep = Math.sqrt(3) * radius;
+    const viewWidth = this.width / this.camera.zoom;
+    const viewHeight = this.height / this.camera.zoom;
+    const left = this.camera.x - viewWidth / 2 - radius;
+    const right = this.camera.x + viewWidth / 2 + radius;
+    const top = this.camera.y - viewHeight / 2 - radius;
+    const bottom = this.camera.y + viewHeight / 2 + radius;
+    const firstColumn = Math.floor(left / columnStep);
+    const lastColumn = Math.ceil(right / columnStep);
+    const firstRow = Math.floor(top / rowStep) - 1;
+    const lastRow = Math.ceil(bottom / rowStep) + 1;
 
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.04)';
-    ctx.lineWidth = 1;
-
-    ctx.beginPath();
-    for (let x = startX; x <= endX; x += gridSize) {
-      ctx.moveTo(x, startY);
-      ctx.lineTo(x, endY);
+    ctx.lineWidth = 1.15;
+    for (let column = firstColumn; column <= lastColumn; column++) {
+      const centerX = column * columnStep;
+      const rowOffset = (column & 1) ? rowStep / 2 : 0;
+      for (let row = firstRow; row <= lastRow; row++) {
+        const centerY = row * rowStep + rowOffset;
+        ctx.beginPath();
+        for (let corner = 0; corner < 6; corner++) {
+          const angle = corner * Math.PI / 3;
+          const x = centerX + Math.cos(angle) * radius;
+          const y = centerY + Math.sin(angle) * radius;
+          if (corner === 0) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+        }
+        ctx.closePath();
+        const tile = (column + row) % 3;
+        ctx.fillStyle = tile === 0 ? 'rgba(172, 158, 115, 0.035)' : 'rgba(31, 48, 37, 0.15)';
+        ctx.fill();
+        ctx.strokeStyle = 'rgba(212, 194, 145, 0.13)';
+        ctx.stroke();
+      }
     }
-    for (let y = startY; y <= endY; y += gridSize) {
-      ctx.moveTo(startX, y);
-      ctx.lineTo(endX, y);
-    }
-    ctx.stroke();
   }
 
   drawWorldBoundary() {
     const ctx = this.ctx;
     ctx.save();
     ctx.shadowBlur = 25;
-    ctx.shadowColor = '#ff3366';
-    ctx.strokeStyle = '#ff3366';
+    ctx.shadowColor = '#d3ac62';
+    ctx.strokeStyle = '#b89656';
     ctx.lineWidth = 8;
     ctx.beginPath();
     ctx.arc(0, 0, WORLD_RADIUS, 0, Math.PI * 2);

@@ -904,3 +904,88 @@ html, body {
   color: #06d6a0;
   font-size: 1.4rem;
 }
+
+/* Medieval drake arena theme */
+:root {
+  color-scheme: dark;
+  --forest-950: #101812;
+  --forest-900: #18231a;
+  --parchment: #e8dfc4;
+  --muted-parchment: #bdb69c;
+  --brass: #c4a15c;
+  --brass-light: #e4cb8b;
+}
+
+html, body { background: #111811; color: var(--parchment); font-family: 'Nunito', sans-serif; }
+#game-container {
+  background: radial-gradient(ellipse at 50% 48%, rgba(104,117,76,.12), transparent 56%), linear-gradient(135deg,#1b261c,#101711 72%);
+}
+#menu-overlay, #gameover-overlay {
+  background: radial-gradient(ellipse at center,rgba(27,39,28,.78),rgba(9,14,10,.95)),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='96' height='84' viewBox='0 0 96 84'%3E%3Cg fill='none' stroke='%23d1b879' stroke-opacity='.11' stroke-width='1'%3E%3Cpath d='M24 1 48 14v28L24 55 0 42V14zM72 29l24 13v28L72 83 48 70V42zM72-27l24 13v28L72 27 48 14v-28z'/%3E%3C/g%3E%3C/svg%3E");
+  backdrop-filter: blur(5px);
+}
+.menu-card {
+  position: relative;
+  background: linear-gradient(145deg,rgba(40,54,41,.98),rgba(19,29,21,.98));
+  border: 1px solid #a88c52;
+  border-radius: 8px;
+  box-shadow: 0 24px 80px rgba(0,0,0,.62), inset 0 0 0 5px rgba(196,161,92,.08), inset 0 0 32px rgba(0,0,0,.28);
+}
+.menu-card::before {
+  content: '✦  KRÁLOVSTVÍ DRAČÍHO ŠUPINATCE  ✦';
+  display: block;
+  color: var(--brass-light);
+  font: 700 .64rem 'Cinzel',serif;
+  letter-spacing: .2em;
+  margin: -9px 0 13px;
+}
+.logo-title { font: 800 clamp(2.25rem,7vw,3.2rem)/1 'Cinzel',serif; letter-spacing: .035em; text-shadow: 0 2px #26301d,0 0 24px rgba(196,161,92,.2); }
+.logo-slutter { color: #d7c28d; }
+.logo-io { color: #82966a; }
+.tagline { color: var(--muted-parchment); font-size: .88rem; }
+.mode-tabs { background: rgba(8,13,9,.7); border: 1px solid rgba(196,161,92,.24); border-radius: 6px; }
+.mode-tab { color: #b5b59d; font: 700 .76rem 'Cinzel',serif; border-radius: 4px; }
+.mode-tab.active { background: linear-gradient(135deg,#8f7543,#6c613d); color: #fff4d5; box-shadow: inset 0 0 0 1px rgba(238,218,165,.38),0 3px 14px rgba(0,0,0,.3); }
+.input-group input, input[type="text"] { background: rgba(9,15,10,.78); color: #f0e8d1; border: 1px solid #59664a; border-radius: 5px; font: 700 .98rem 'Nunito',sans-serif; }
+.input-group input:focus, input[type="text"]:focus { border-color: var(--brass); box-shadow: 0 0 0 2px rgba(196,161,92,.16); }
+.skin-selector label, .team-selector-box label, .fps-selector label { color: var(--brass-light); font-family: 'Cinzel',serif; letter-spacing: .04em; }
+.skin-btn { border-radius: 5px; transform: rotate(45deg) scale(.82); border: 2px solid rgba(232,223,196,.3); }
+.skin-btn:hover { transform: rotate(45deg) scale(.98); }
+.skin-btn.active { border-color: #f2d88e; transform: rotate(45deg) scale(1.08); box-shadow: 0 0 14px rgba(228,203,139,.48); }
+.primary-btn, .secondary-btn {
+  border: 1px solid rgba(236,215,163,.42); border-radius: 5px;
+  background: linear-gradient(180deg,#8c7545,#615b37); color: #fff3d3;
+  font: 700 1rem 'Cinzel',serif; letter-spacing: .025em;
+  box-shadow: 0 5px 18px rgba(0,0,0,.32),inset 0 1px rgba(255,244,212,.16);
+}
+.primary-btn:hover, .secondary-btn:hover { background: linear-gradient(180deg,#a48b55,#746b42); box-shadow: 0 7px 22px rgba(0,0,0,.42); }
+.primary-btn.mmo-btn { background: linear-gradient(180deg,#9b8049,#665a36); font-size: 1.05rem; }
+.team-selector-box, .player-config-box, .instructions, .custom-server-box { background: rgba(9,15,10,.44); border: 1px solid rgba(196,161,92,.2); border-radius: 5px; }
+.team-toggle-btn { background: #18231a; border: 1px solid #536047; border-radius: 4px; color: #c5c5aa; font: 700 .75rem 'Cinzel',serif; }
+.team-toggle-btn.active { color: #f0d68a; border-color: var(--brass); background: rgba(196,161,92,.14); box-shadow: inset 0 0 12px rgba(196,161,92,.1); }
+.mini-team-btn, .team-respawn-btn { background: linear-gradient(180deg,#a58a50,#71613a) !important; color: #fff2ce !important; }
+.instructions, .player-config-box small, .team-lbl, .team-or, .custom-server-box label { color: #c2bea7; }
+
+#score-box, .score-badge, #leaderboard, #room-info, #minimap-container,
+#sound-btn, #fps-badge, #hud-menu-btn, .teammate-compass {
+  color: var(--parchment); background: rgba(18,28,20,.88); border-color: rgba(196,161,92,.66);
+  box-shadow: 0 8px 26px rgba(0,0,0,.42), inset 0 0 0 1px rgba(232,223,196,.05); backdrop-filter: blur(7px);
+}
+#score-box .label, #score-val, .lb-title, #lb-list .lb-score, .compass-arrow, .compass-dist, .team-badge { color: var(--brass-light); }
+.lb-title, #score-box, .score-badge, #fps-badge, #room-info, .compass-name,
+.team-badge, .player-config-box h4, .hud-menu-btn { font-family: 'Cinzel',serif; }
+.p1-badge, .p2-badge { border-color: #a88c52; }
+.p1-badge .p-name, .p2-badge .p-name { color: #d8ca9d; }
+.p1-badge .p-cm, .p2-badge .p-cm { text-shadow: 0 0 7px rgba(196,161,92,.5); }
+.gameover-card h2 { color: #d4bb7c; font: 700 1.65rem 'Cinzel',serif; text-shadow: 0 0 18px rgba(196,161,92,.24); }
+.gameover-card p { color: var(--muted-parchment); }
+.final-score-box { background: rgba(8,13,9,.55); border: 1px solid rgba(196,161,92,.25); }
+.final-score-box span { color: #d6c38f; }
+.menu-btn, .respawn-btn, .team-respawn-btn { background: linear-gradient(180deg,#817247,#514c31) !important; }
+
+@media (max-width: 600px) {
+  .menu-card { padding: 22px 18px; border-radius: 6px; }
+  .mode-tab { font-size: .65rem; padding: 9px 3px; }
+  .menu-card::before { font-size: .55rem; letter-spacing: .12em; }
+}

@@ -3,11 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <title>Slutter.io - Duo Co-Op & MMO Penis Battle Royale</title>
+  <title>Slutter.io — Ještěří aréna rytířů</title>
   <link rel="stylesheet" href="style.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@700;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700;800&family=Nunito:wght@500;700;800;900&display=swap" rel="stylesheet">
   <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
 </head>
 <body>
@@ -18,7 +18,7 @@
     <div id="hud" class="hidden">
       <!-- Single Player / MMO Score -->
       <div id="score-box" class="score-container">
-        <span class="label">Délka:</span>
+        <span class="label">Délka draka:</span>
         <span id="score-val">10 cm</span>
       </div>
 
@@ -64,13 +64,13 @@
         <div class="logo-title">
           <span class="logo-slutter">SLUTTER</span><span class="logo-io">.IO</span>
         </div>
-        <p class="tagline">Slither.io, ale místo hadů jsou to pořádní mackové!</p>
+        <p class="tagline">Vejdi do dračí arény, získej slávu a staň se legendou království.</p>
 
         <!-- Mode Tabs -->
         <div class="mode-tabs">
-          <button class="mode-tab active" data-mode="mmo">🌍 ŽIVÝ SERVER & TÝMY</button>
-          <button class="mode-tab" data-mode="local2p">👥 2 Hráči (1 PC)</button>
-          <button class="mode-tab" data-mode="solo">👤 Sólo trénink</button>
+          <button class="mode-tab active" data-mode="mmo">🌍 Královská aréna</button>
+          <button class="mode-tab" data-mode="local2p">⚔️ Souboj rytířů</button>
+          <button class="mode-tab" data-mode="solo">🐉 Dračí výprava</button>
         </div>
 
         <!-- TAB 1: CENTRAL MMO SERVER & TEAMS (Co-op) -->
@@ -123,7 +123,7 @@
             <input type="text" id="custom-server-url" placeholder="https://sluthherio.onrender.com">
           </div>
 
-          <button id="start-mmo-btn" class="primary-btn mmo-btn">⚡ VSTOUPIT DO ARÉNY (ŽIVĚ)</button>
+          <button id="start-mmo-btn" class="primary-btn mmo-btn">⚔️ VSTOUPIT DO ARÉNY</button>
           <div id="mmo-status" class="status-msg hidden"></div>
 
           <div class="instructions">
@@ -136,19 +136,19 @@
         <div id="tab-local2p" class="tab-content hidden">
           <div class="split-players-config">
             <div class="player-config-box">
-              <h4>🥒 Hráč 1 (Myš)</h4>
-              <input type="text" id="p1-nick" placeholder="Jméno Hráče 1" maxlength="12" value="Macko 1">
+              <h4>🛡️ Rytíř 1 (Myš)</h4>
+              <input type="text" id="p1-nick" placeholder="Jméno rytíře 1" maxlength="12" value="Rytíř 1">
               <div class="skin-options compact" id="p1-skins"></div>
               <small>Ovládání: Myš + Levé tlačítko</small>
             </div>
             <div class="player-config-box">
-              <h4>🍆 Hráč 2 (Klávesnice)</h4>
-              <input type="text" id="p2-nick" placeholder="Jméno Hráče 2" maxlength="12" value="Macko 2">
+              <h4>⚔️ Rytíř 2 (Klávesnice)</h4>
+              <input type="text" id="p2-nick" placeholder="Jméno rytíře 2" maxlength="12" value="Rytíř 2">
               <div class="skin-options compact" id="p2-skins"></div>
               <small>Ovládání: WASD + Mezerník</small>
             </div>
           </div>
-          <button id="start-local2p-btn" class="primary-btn">SPUSTIT BITVU VE DVOU!</button>
+          <button id="start-local2p-btn" class="primary-btn">⚔️ ZAHÁJIT RYTÍŘSKÝ SOUBOJ</button>
           <div class="instructions">
             <div>🎮 <b>Hrajete spolu na jedné obrazovce!</b></div>
             <div>Hráč 1 řídí myší, Hráč 2 klávesami <b>W, A, S, D</b> a <b>Mezerníkem</b>.</div>
@@ -164,7 +164,7 @@
             <label>Výběr stylu / kůže:</label>
             <div class="skin-options" id="solo-skins"></div>
           </div>
-          <button id="start-solo-btn" class="primary-btn">HRÁT SÓLO S BOTY</button>
+          <button id="start-solo-btn" class="primary-btn">🐉 VYRAZIT NA VÝPRAVU</button>
           <div class="instructions">
             <div>🤖 <b>Tréninkový mód:</b> 20+ počítačem řízených botů.</div>
           </div>
@@ -176,8 +176,8 @@
     <!-- Game Over Screen with Duo Respawn -->
     <div id="gameover-overlay" class="hidden">
       <div class="menu-card gameover-card">
-        <h2 id="gameover-title">💥 PRASKNUL JSI!</h2>
-        <p id="gameover-subtitle">Byl jsi pokořen v boji titánů.</p>
+        <h2 id="gameover-title">🐉 DRAK PADL V BOJI</h2>
+        <p id="gameover-subtitle">Aréna čeká na tvůj návrat, rytíři.</p>
         <div class="final-score-box">
           <span id="final-score-label">Konečná délka:</span>
           <span id="final-score">0 cm</span>
