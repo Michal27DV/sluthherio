@@ -252,6 +252,33 @@ html, body {
   border-color: #06d6a0;
 }
 
+#hud-menu-btn {
+  position: absolute;
+  top: 20px;
+  left: 175px;
+  height: 44px;
+  background: rgba(18, 14, 34, 0.85);
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  border-radius: 22px;
+  padding: 0 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Fredoka One', cursive;
+  font-size: 0.95rem;
+  color: #ff4d94;
+  cursor: pointer;
+  pointer-events: auto;
+  transition: transform 0.2s, border-color 0.2s, background 0.2s;
+  box-shadow: 0 0 10px rgba(255, 77, 148, 0.2);
+}
+
+#hud-menu-btn:hover {
+  transform: scale(1.06);
+  border-color: #ff4d94;
+  background: rgba(255, 77, 148, 0.25);
+}
+
 .fps-selector {
   margin-bottom: 16px;
   text-align: left;
@@ -618,7 +645,22 @@ html, body {
 .gameover-buttons {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
+}
+
+.menu-btn {
+  background: linear-gradient(90deg, #ff007f, #7928ca) !important;
+  box-shadow: 0 6px 20px rgba(255, 0, 127, 0.5) !important;
+  font-size: 1.15rem;
+}
+
+.menu-btn:hover {
+  box-shadow: 0 8px 26px rgba(255, 0, 127, 0.75) !important;
+}
+
+.respawn-btn {
+  background: linear-gradient(90deg, #118ab2, #06d6a0);
+  font-size: 1.05rem;
 }
 
 .team-respawn-btn {

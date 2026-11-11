@@ -764,6 +764,8 @@ class Game {
     this.finalScore = document.getElementById('final-score');
     this.restartBtn = document.getElementById('restart-btn');
     this.respawnTeammateBtn = document.getElementById('respawn-teammate-btn');
+    this.menuBtn = document.getElementById('menu-btn');
+    this.hudMenuBtn = document.getElementById('hud-menu-btn');
     this.soundBtn = document.getElementById('sound-btn');
 
     // Mode Inputs
@@ -1137,10 +1139,55 @@ class Game {
       }
     });
 
+    if (this.menuBtn) {
+      this.menuBtn.addEventListener('click', () => {
+        this.returnToMenu();
+      });
+    }
+
+    if (this.hudMenuBtn) {
+      this.hudMenuBtn.addEventListener('click', () => {
+        this.returnToMenu();
+      });
+    }
+
     this.soundBtn.addEventListener('click', () => {
       const active = sounds.toggle();
       this.soundBtn.textContent = active ? '🔊' : '🔇';
     });
+  }
+
+  returnToMenu() {
+    this.isRunning = false;
+    sounds.stopBoost();
+
+    if (this.mmoWs) {
+      const ws = this.mmoWs;
+      this.mmoWs = null;
+      try {
+        ws.close();
+      } catch (e) {}
+    }
+
+    this.wasDead = false;
+    this.myPlayerId = null;
+    this.teammate = null;
+    this.snakes = [];
+    this.foods = [];
+
+    this.gameoverOverlay.classList.add('hidden');
+    this.hud.classList.add('hidden');
+    this.teammateCompass.classList.add('hidden');
+    this.menuOverlay.classList.remove('hidden');
+
+    if (this.mmoStatus) {
+      this.mmoStatus.classList.add('hidden');
+      this.mmoStatus.textContent = '';
+    }
+
+    if (this.ctx) {
+      this.ctx.clearRect(0, 0, this.width, this.height);
+    }
   }
 
   updateP2Heading() {
