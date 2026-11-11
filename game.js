@@ -111,12 +111,12 @@ const sounds = new SoundController();
 // --- Skin Palettes ---
 const SKINS = [
   {
-    name: 'Zelená',
-    body: '#547d48',
-    glans: '#8ebc61',
-    outline: '#243f2b',
-    vein: '#a8c979',
-    ball: '#405f38'
+    name: 'Indigo',
+    body: '#69549b',
+    glans: '#a18be2',
+    outline: '#35294f',
+    vein: '#c1b2ef',
+    ball: '#534371'
   },
   {
     name: 'Měděná',
@@ -135,7 +135,7 @@ const SKINS = [
     ball: '#252e3a'
   },
   {
-    name: 'Fialová',
+    name: 'Ametyst',
     body: '#7957a5',
     glans: '#aa82d4',
     outline: '#34254d',
@@ -221,7 +221,7 @@ class Food {
   }
 
   randomColor() {
-    const palette = ['#d7bd73', '#a5b674', '#819b87', '#c68b53', '#d5cfad', '#b88c61', '#8ebbc0'];
+    const palette = ['#a48cff', '#75c9ff', '#c5a7ff', '#6baee8', '#d5b6ff', '#8bc9f3', '#e0d2ff'];
     return palette[Math.floor(Math.random() * palette.length)];
   }
 
@@ -248,10 +248,10 @@ class Food {
       ctx.rotate(this.swimAngle);
       const glow = 4 + Math.sin(this.pulse) * 2;
       ctx.shadowBlur = glow;
-      ctx.shadowColor = '#e4cb8b';
+      ctx.shadowColor = '#a9baff';
 
       ctx.beginPath();
-      ctx.strokeStyle = 'rgba(228, 203, 139, 0.78)';
+      ctx.strokeStyle = 'rgba(156, 190, 255, 0.82)';
       ctx.lineWidth = 2;
       ctx.moveTo(0, 0);
       const tailLen = this.radius * 3.5;
@@ -261,7 +261,7 @@ class Food {
       ctx.stroke();
 
       ctx.beginPath();
-      ctx.fillStyle = '#e4cb8b';
+      ctx.fillStyle = '#c7caff';
       ctx.moveTo(this.radius, 0);
       ctx.lineTo(0, this.radius * 0.72);
       ctx.lineTo(-this.radius, 0);
@@ -1712,18 +1712,18 @@ class Game {
     mCtx.clearRect(0, 0, w, h);
 
     // Radar Dark Circular Background
-    mCtx.fillStyle = 'rgba(18, 28, 20, 0.94)';
+    mCtx.fillStyle = 'rgba(20, 21, 48, 0.94)';
     mCtx.beginPath();
     mCtx.arc(cx, cy, mapRadius, 0, Math.PI * 2);
     mCtx.fill();
 
-    mCtx.strokeStyle = 'rgba(196, 161, 92, 0.25)';
+    mCtx.strokeStyle = 'rgba(145, 137, 236, 0.28)';
     mCtx.lineWidth = 1;
     mCtx.beginPath();
     mCtx.arc(cx, cy, mapRadius * 0.5, 0, Math.PI * 2);
     mCtx.stroke();
 
-    mCtx.strokeStyle = '#b89656';
+    mCtx.strokeStyle = '#8f9cf0';
     mCtx.lineWidth = 2.5;
     mCtx.beginPath();
     mCtx.arc(cx, cy, mapRadius, 0, Math.PI * 2);
@@ -1758,8 +1758,8 @@ class Game {
         mCtx.arc(mx, my, ringRad, 0, Math.PI * 2);
         mCtx.stroke();
 
-        mCtx.fillStyle = '#b8c78a';
-        mCtx.shadowColor = '#b8c78a';
+        mCtx.fillStyle = '#b9adff';
+        mCtx.shadowColor = '#9a91ff';
         mCtx.shadowBlur = 8;
         mCtx.beginPath();
         mCtx.arc(mx, my, 5, 0, Math.PI * 2);
@@ -1776,14 +1776,14 @@ class Game {
       } else if (isMyTeammate) {
         // --- DRAW TEAMMATE (Bright Golden Crown/Star + Name) ---
         const teamRingRad = 6.0 + Math.sin(pulseTime * 2.5) * 3.0;
-        mCtx.strokeStyle = '#e4cb8b';
+        mCtx.strokeStyle = '#8fcfff';
         mCtx.lineWidth = 2;
         mCtx.beginPath();
         mCtx.arc(mx, my, teamRingRad, 0, Math.PI * 2);
         mCtx.stroke();
 
-        mCtx.fillStyle = '#e4cb8b';
-        mCtx.shadowColor = '#e4cb8b';
+        mCtx.fillStyle = '#8fcfff';
+        mCtx.shadowColor = '#6ebdff';
         mCtx.shadowBlur = 10;
         mCtx.beginPath();
         mCtx.arc(mx, my, 5.5, 0, Math.PI * 2);
@@ -1792,7 +1792,7 @@ class Game {
 
         mCtx.save();
         mCtx.font = 'bold 10px Nunito, sans-serif';
-        mCtx.fillStyle = '#e4cb8b';
+        mCtx.fillStyle = '#9ddaff';
         mCtx.textAlign = 'center';
         mCtx.textBaseline = 'bottom';
         mCtx.shadowColor = '#000000';
@@ -1802,7 +1802,7 @@ class Game {
 
       } else {
         // --- DRAW OTHER PLAYERS ---
-        const color = s.skin ? s.skin.glans : '#a5b674';
+        const color = s.skin ? s.skin.glans : '#83c9ff';
 
         mCtx.fillStyle = color;
         mCtx.shadowColor = color;
@@ -1862,9 +1862,9 @@ class Game {
         }
         ctx.closePath();
         const tile = (column + row) % 3;
-        ctx.fillStyle = tile === 0 ? 'rgba(172, 158, 115, 0.035)' : 'rgba(31, 48, 37, 0.15)';
+        ctx.fillStyle = tile === 0 ? 'rgba(143, 133, 219, 0.045)' : 'rgba(35, 48, 83, 0.16)';
         ctx.fill();
-        ctx.strokeStyle = 'rgba(212, 194, 145, 0.13)';
+        ctx.strokeStyle = 'rgba(159, 169, 255, 0.17)';
         ctx.stroke();
       }
     }
@@ -1874,8 +1874,8 @@ class Game {
     const ctx = this.ctx;
     ctx.save();
     ctx.shadowBlur = 25;
-    ctx.shadowColor = '#d3ac62';
-    ctx.strokeStyle = '#b89656';
+    ctx.shadowColor = '#8b8aff';
+    ctx.strokeStyle = '#8d9be8';
     ctx.lineWidth = 8;
     ctx.beginPath();
     ctx.arc(0, 0, WORLD_RADIUS, 0, Math.PI * 2);

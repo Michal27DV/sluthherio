@@ -1134,3 +1134,164 @@ body, button, input, .logo-title, .mode-tab, .primary-btn, .secondary-btn,
   #tab-mmo > .skin-selector { align-self: start; }
   .gameover-card { width: min(560px, 92vw); height: auto; padding: 30px 22px; }
 }
+
+/* Keep the in-game menu button clear of the changing FPS label. */
+#hud-menu-btn { left: 230px; }
+
+@media (max-width: 600px) {
+  #hud-menu-btn { left: 205px; padding: 0 10px; font-size: .82rem; }
+}
+
+/* Liquid glass palette: amethyst, indigo and ice blue */
+:root {
+  --forest-950: #100f20;
+  --forest-900: #17172e;
+  --parchment: #f0edff;
+  --muted-parchment: #b7b9dc;
+  --brass: #8a79e6;
+  --brass-light: #c4c2ff;
+  --glass-violet: 112, 82, 205;
+  --glass-blue: 67, 153, 225;
+}
+
+html, body {
+  color: var(--parchment);
+  background: #10101e;
+}
+
+#game-container {
+  background:
+    radial-gradient(ellipse at 18% 18%, rgba(116, 76, 212, .19), transparent 40%),
+    radial-gradient(ellipse at 82% 72%, rgba(44, 145, 224, .16), transparent 44%),
+    linear-gradient(135deg, #171326, #101522 58%, #111126);
+}
+
+#menu-overlay, #gameover-overlay {
+  background:
+    radial-gradient(ellipse at 22% 20%, rgba(84, 63, 164, .28), transparent 48%),
+    radial-gradient(ellipse at 83% 78%, rgba(43, 126, 194, .2), transparent 48%),
+    rgba(9, 10, 22, .5);
+  backdrop-filter: blur(18px) saturate(145%);
+}
+
+.menu-card {
+  background:
+    linear-gradient(130deg, rgba(104, 79, 174, .22), transparent 42%),
+    linear-gradient(315deg, rgba(48, 126, 186, .16), transparent 48%),
+    rgba(19, 19, 39, .7);
+  border-color: rgba(208, 211, 255, .22);
+  box-shadow: 0 28px 90px rgba(3, 5, 22, .52),
+    inset 0 1px rgba(255, 255, 255, .2),
+    inset 0 -1px rgba(154, 175, 255, .1);
+  backdrop-filter: blur(28px) saturate(160%);
+}
+
+.menu-card::before { color: #aebfff; }
+.logo-title { text-shadow: 0 2px 0 rgba(15, 14, 35, .8), 0 0 30px rgba(146, 125, 255, .36); }
+.logo-slutter { color: #d6ccff; }
+.logo-io { color: #86d4ff; }
+.tagline { color: #c2c4e2; }
+
+.mode-tabs { border-color: rgba(186, 193, 255, .18); }
+.mode-tab {
+  color: #c0c1dd;
+  background: linear-gradient(135deg, rgba(121, 101, 204, .1), rgba(68, 126, 180, .07));
+  border-color: rgba(198, 204, 255, .16);
+  backdrop-filter: blur(14px) saturate(145%);
+}
+.mode-tab span { color: #91d8ff; }
+.mode-tab.active {
+  color: #f3f1ff;
+  background: linear-gradient(110deg, rgba(143, 107, 231, .38), rgba(57, 148, 212, .24));
+  border-color: rgba(193, 183, 255, .45);
+  box-shadow: inset 3px 0 #b8a7ff, inset 0 1px rgba(255,255,255,.17), 0 10px 30px rgba(57,48,130,.2);
+}
+
+.menu-card > .tab-content {
+  border-color: rgba(190, 197, 255, .2);
+  scrollbar-color: rgba(145, 137, 235, .55) rgba(14, 15, 34, .3);
+}
+
+.input-group input, input[type="text"] {
+  color: #f3f2ff;
+  background: rgba(13, 17, 38, .58);
+  border-color: rgba(169, 174, 241, .3);
+  box-shadow: inset 0 1px rgba(255,255,255,.07), 0 8px 24px rgba(3,7,25,.12);
+  backdrop-filter: blur(14px);
+}
+.input-group input:focus, input[type="text"]:focus {
+  border-color: rgba(146, 204, 255, .75);
+  box-shadow: 0 0 0 3px rgba(101, 138, 233, .16), inset 0 1px rgba(255,255,255,.11);
+}
+
+.skin-selector label, .team-selector-box label, .fps-selector label { color: #c9c4ff; }
+.skin-btn { border-color: rgba(225, 227, 255, .3); box-shadow: 0 5px 18px rgba(7, 8, 30, .42); }
+.skin-btn.active { border-color: #a9dcff; box-shadow: 0 0 18px rgba(130, 181, 255, .54); }
+
+.primary-btn, .secondary-btn {
+  color: #fbfaff;
+  background: linear-gradient(112deg, rgba(137, 100, 222, .88), rgba(55, 145, 214, .82));
+  border-color: rgba(220, 224, 255, .38);
+  box-shadow: 0 10px 28px rgba(62, 67, 169, .27), inset 0 1px rgba(255,255,255,.3), inset 0 -1px rgba(20,26,76,.22);
+  backdrop-filter: blur(16px) saturate(150%);
+}
+.primary-btn:hover, .secondary-btn:hover {
+  background: linear-gradient(112deg, rgba(158, 122, 243, .96), rgba(71, 166, 233, .92));
+  box-shadow: 0 13px 34px rgba(72, 91, 196, .36), inset 0 1px rgba(255,255,255,.36);
+}
+.primary-btn.mmo-btn { background: linear-gradient(112deg, rgba(137,100,222,.9), rgba(55,145,214,.84)); }
+
+.team-selector-box, .player-config-box, .instructions, .custom-server-box {
+  background: linear-gradient(135deg, rgba(106, 82, 177, .12), rgba(51, 120, 171, .1)), rgba(17, 18, 40, .42);
+  border-color: rgba(186, 195, 255, .18);
+  box-shadow: inset 0 1px rgba(255,255,255,.09);
+  backdrop-filter: blur(18px) saturate(145%);
+}
+.team-toggle-btn {
+  color: #c9cae5;
+  background: rgba(28, 29, 61, .52);
+  border-color: rgba(168, 174, 236, .24);
+}
+.team-toggle-btn.active {
+  color: #e0d9ff;
+  background: linear-gradient(110deg, rgba(129, 96, 211, .3), rgba(61, 143, 198, .2));
+  border-color: rgba(176, 168, 255, .6);
+  box-shadow: inset 0 1px rgba(255,255,255,.14), 0 5px 18px rgba(50,54,126,.18);
+}
+.team-code-display { border-color: rgba(170, 178, 255, .5); background: rgba(19, 21, 46, .56); }
+.team-badge, .team-selector-box label { color: #c3bdff; }
+.instructions, .player-config-box small, .team-lbl, .team-or, .custom-server-box label { color: #bfc4e2; }
+
+#score-box, .score-badge, #leaderboard, #room-info, #minimap-container,
+#sound-btn, #fps-badge, #hud-menu-btn, .teammate-compass {
+  color: #eff0ff;
+  background: linear-gradient(135deg, rgba(104, 78, 184, .22), rgba(42, 123, 178, .16)), rgba(14, 17, 37, .66);
+  border-color: rgba(197, 206, 255, .31);
+  box-shadow: 0 12px 32px rgba(4, 7, 28, .34), inset 0 1px rgba(255,255,255,.2), inset 0 -1px rgba(157,188,255,.09);
+  backdrop-filter: blur(20px) saturate(165%);
+}
+#score-box .label, #score-val, .lb-title, #lb-list .lb-score,
+.compass-arrow, .compass-dist, .team-badge { color: #c8c3ff; }
+.p1-badge, .p2-badge { border-color: rgba(133, 184, 255, .55); }
+.p1-badge .p-name, .p2-badge .p-name { color: #a9d9ff; }
+.p1-badge .p-cm, .p2-badge .p-cm { text-shadow: 0 0 10px rgba(112, 165, 255, .48); }
+.compass-arrow { color: #a8dfff; }
+#lb-list li.me, #lb-list li.p2, #lb-list li.team-me { color: #bcb2ff !important; text-shadow: 0 0 12px rgba(133, 132, 255, .34); }
+#lb-list .lb-score { color: #9cdcff; }
+.status-success { color: #a5d9ff; background: rgba(64, 111, 181, .24); border-color: rgba(113, 173, 240, .44); }
+.status-error { color: #e5b9ff; background: rgba(139, 71, 167, .2); border-color: rgba(184, 117, 224, .42); }
+
+.gameover-card h2 { color: #d0c7ff; text-shadow: 0 0 22px rgba(141, 126, 246, .36); }
+.gameover-card p { color: #c6c9e4; }
+.final-score-box { background: rgba(13, 16, 39, .56); border-color: rgba(178, 188, 255, .22); }
+.final-score-box span { color: #a9ddff; }
+.menu-btn, .respawn-btn, .team-respawn-btn { background: linear-gradient(112deg, rgba(137,100,222,.88), rgba(55,145,214,.82)) !important; }
+
+@media (prefers-reduced-transparency: reduce) {
+  .menu-card, .mode-tab, .primary-btn, .secondary-btn,
+  #score-box, .score-badge, #leaderboard, #room-info, #minimap-container,
+  #sound-btn, #fps-badge, #hud-menu-btn, .teammate-compass {
+    backdrop-filter: none;
+    background-color: #1a1b38;
+  }
+}
