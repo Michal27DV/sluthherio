@@ -1,5 +1,5 @@
 /**
- * SLUTTER.IO - Dedicated MMO Server & Solo Penis Battle Royale
+ * KNIGHTSLIT.IO - Online multiplayer arena
  * With Duo Co-op Team Mode, Teammate Compass, and Radar Minimap
  */
 
@@ -288,7 +288,7 @@ class Food {
 }
 
 // --- Snake Class ---
-class PenisSnake {
+class Drake {
   constructor(name, x, y, skin, isPlayer = false, playerIndex = 1, team = null) {
     this.name = name;
     this.skin = skin;
@@ -1322,7 +1322,7 @@ class Game {
 
       if (!sn) {
         const skin = SKINS[s.skin] || SKINS[0];
-        sn = new PenisSnake(s.name, headPos[0], headPos[1], skin, isMe, isMe ? 1 : 0, s.team);
+        sn = new Drake(s.name, headPos[0], headPos[1], skin, isMe, isMe ? 1 : 0, s.team);
         sn.id = s.id;
         sn.segments = s.segs.map(pt => ({ x: pt[0], y: pt[1] }));
         this.mmoSnakesMap.set(s.id, sn);
@@ -1482,7 +1482,7 @@ class Game {
     const dist = Math.sqrt(Math.random()) * (WORLD_RADIUS - 300);
     const skin = SKINS[Math.floor(Math.random() * SKINS.length)];
     const name = BOT_NAMES[Math.floor(Math.random() * BOT_NAMES.length)];
-    const bot = new PenisSnake(name, Math.cos(angle) * dist, Math.sin(angle) * dist, skin, false);
+    const bot = new Drake(name, Math.cos(angle) * dist, Math.sin(angle) * dist, skin, false);
     bot.score = randRange(15, 80);
     return bot;
   }
@@ -1492,7 +1492,7 @@ class Game {
     const nick = this.soloNick.value.trim() || 'Hráč';
     const skin = SKINS[this.soloSkinIdx];
 
-    this.player1 = new PenisSnake(nick, 0, 0, skin, true, 1);
+    this.player1 = new Drake(nick, 0, 0, skin, true, 1);
     this.player2 = null;
     this.snakes = [this.player1];
 
@@ -1527,8 +1527,8 @@ class Game {
     const skin1 = SKINS[this.p1SkinIdx];
     const skin2 = SKINS[this.p2SkinIdx];
 
-    this.player1 = new PenisSnake(nick1, -150, 0, skin1, true, 1);
-    this.player2 = new PenisSnake(nick2, 150, 0, skin2, true, 2);
+    this.player1 = new Drake(nick1, -150, 0, skin1, true, 1);
+    this.player2 = new Drake(nick2, 150, 0, skin2, true, 2);
     this.snakes = [this.player1, this.player2];
 
     this.spawnInitialFood();

@@ -1,6 +1,6 @@
-# 🍆 SLUTTER.IO - Multiplayer Battle Royale
+# KNIGHTSLIT.IO - Multiplayer Battle Royale
 
-Parodická hra ve stylu Slither.io s plnou podporou online multiplayeru i lokální hry pro dva hráče.
+Multiplayerová aréna s ještěrkami, online režimem a lokální hrou pro dva hráče.
 
 ---
 
@@ -9,14 +9,14 @@ Parodická hra ve stylu Slither.io s plnou podporou online multiplayeru i lokál
 Aby si hru mohl kdokoliv otevřít z celého světa na mobilu nebo počítači a fungoval vám online multiplayer bez nutnosti cokoliv instalovat:
 
 ### Krok 1: Nahrání na GitHub
-1. Vytvoř si na [GitHub.com](https://github.com) nový prázdný repozitář (např. `slutterio`).
+1. Vytvoř si na [GitHub.com](https://github.com) nový prázdný repozitář (např. `knightslit`).
 2. V terminálu ve složce projektu spusť:
    ```bash
    git init
    git add .
-   git commit -m "Initial commit of Slutter.io"
+   git commit -m "Initial commit of Knightslit.io"
    git branch -M main
-   git remote add origin https://github.com/TVOJE_JMENO/slutterio.git
+   git remote add origin https://github.com/TVOJE_JMENO/knightslit.git
    git push -u origin main
    ```
 
@@ -27,10 +27,10 @@ Pro veřejný server doporučujeme **Render.com** (je zdarma a podporuje WebSock
 
 1. Jdi na [render.com](https://render.com) a přihlas se přes svůj GitHub účet.
 2. Klikni na tlačítko **New +** ➔ **Web Service**.
-3. Vyber svůj repozitář `slutterio`.
+3. Vyber svůj repozitář `knightslit`.
 4. Render automaticky rozpozná nastavení z přiloženého `render.yaml` (případně zkontroluj: *Runtime: Python*, *Start Command: python3 server.py*).
 5. Klikni na **Deploy Web Service**.
-6. Během minuty dostaneš veřejnou adresu (např. `https://slutterio.onrender.com`).
+6. Během minuty dostaneš veřejnou adresu (např. `https://knightslit.onrender.com`).
 
 👉 **A to je vše!** Tuhle adresu pošleš kamarádovi. Když na ni kdokoliv klikne odkudkoliv, hra se načte a online multiplayer přes 4-místný kód běží okamžitě na tomto centrálním serveru!
 

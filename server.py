@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-SLUTTER.IO - Dedicated MMO Server s podporou DUO TÝMŮ (Co-op 2 hráči)
+KNIGHTSLIT.IO - Multiplayer server s podporou týmů
 Spuštění: python3 server.py
 """
 
@@ -267,7 +267,7 @@ class ServerPlayer:
                 '#ff7b90'
             ))
 
-class SlutterWorld:
+class KnightslitWorld:
     def __init__(self):
         self.players = {}
         self.foods = []
@@ -503,7 +503,7 @@ class SlutterWorld:
                 except Exception:
                     pass
 
-WORLD = SlutterWorld()
+WORLD = KnightslitWorld()
 
 def handle_websocket_client(sock, headers):
     if not ws_handshake(sock, headers):
@@ -587,7 +587,7 @@ def main():
 
     with ThreadedTCPServer(("", PORT), DualHTTPHandler) as httpd:
         print("=" * 64)
-        print("🍆 SLUTTER.IO DUO CO-OP TÝMOVÝ SERVER BĚŽÍ! 🎮")
+        print("KNIGHTSLIT.IO multiplayer server běží")
         print("=" * 64)
         print(f"👉 Lokální přístup:     http://localhost:{PORT}")
         print(f"👉 Přístup z Wi-Fi:     http://{local_ip}:{PORT}")
