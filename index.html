@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <title>Slutter.io - MMO Penis Battle Royale</title>
+  <title>Slutter.io - Duo Co-Op & MMO Penis Battle Royale</title>
   <link rel="stylesheet" href="style.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -35,8 +35,17 @@
       </div>
 
       <div id="leaderboard">
-        <div class="lb-title">🏆 Žebříček největších</div>
+        <div class="lb-title" id="lb-header">🏆 Žebříček největších</div>
         <ol id="lb-list"></ol>
+      </div>
+
+      <!-- Off-Screen Teammate Compass Arrow Indicator -->
+      <div id="teammate-compass" class="teammate-compass hidden">
+        <div class="compass-arrow" id="compass-arrow">▲</div>
+        <div class="compass-info">
+          <span class="compass-name" id="compass-name">Parťák</span>
+          <span class="compass-dist" id="compass-dist">120m</span>
+        </div>
       </div>
 
       <div id="minimap-container">
@@ -58,12 +67,12 @@
 
         <!-- Mode Tabs -->
         <div class="mode-tabs">
-          <button class="mode-tab active" data-mode="mmo">🌍 ŽIVÝ SERVER</button>
+          <button class="mode-tab active" data-mode="mmo">🌍 ŽIVÝ SERVER & TÝMY</button>
           <button class="mode-tab" data-mode="local2p">👥 2 Hráči (1 PC)</button>
           <button class="mode-tab" data-mode="solo">👤 Sólo trénink</button>
         </div>
 
-        <!-- TAB 1: CENTRAL MMO SERVER (No bots, real players only) -->
+        <!-- TAB 1: CENTRAL MMO SERVER & TEAMS (Co-op) -->
         <div id="tab-mmo" class="tab-content">
           <div class="input-group">
             <input type="text" id="mmo-nick" placeholder="Tvoje přezdívka" maxlength="14" value="SuperKláda">
@@ -73,8 +82,32 @@
             <div class="skin-options" id="mmo-skins"></div>
           </div>
 
+          <!-- Team Selection Options -->
+          <div class="team-selector-box">
+            <label>🤝 Způsob hry:</label>
+            <div class="team-mode-toggle">
+              <button id="team-mode-solo" class="team-toggle-btn active">👤 Každý za sebe</button>
+              <button id="team-mode-coop" class="team-toggle-btn">🤝 Hra v týmu (Duos)</button>
+            </div>
+
+            <!-- Team Configuration Subpanel -->
+            <div id="team-config-panel" class="team-config-panel hidden">
+              <div class="team-actions">
+                <button id="create-team-btn" class="mini-team-btn">👑 Založit nový tým</button>
+                <div class="team-or">nebo</div>
+                <input type="text" id="join-team-input" placeholder="Zadej 4-místný kód týmu" maxlength="8">
+              </div>
+
+              <div id="team-code-display" class="team-code-display hidden">
+                <div class="team-lbl">TVŮJ KÓD TÝMU PRO PARŤÁKA:</div>
+                <div class="team-badge" id="team-code-val">5521</div>
+                <button id="copy-team-link-btn" class="mini-btn">📋 Kopírovat odkaz pro parťáka</button>
+              </div>
+            </div>
+          </div>
+
           <div class="fps-selector">
-            <label>⚡ Omezovač FPS (Pro plynulost bez záseků):</label>
+            <label>⚡ Omezovač FPS:</label>
             <div class="fps-options">
               <button class="fps-btn" data-fps="30">30 FPS</button>
               <button class="fps-btn active" data-fps="60">60 FPS (Doporučeno)</button>
@@ -83,7 +116,7 @@
             </div>
           </div>
 
-          <!-- Optional Custom Server URL (for GitHub Pages to connect to Render) -->
+          <!-- Optional Custom Server URL (for GitHub Pages) -->
           <div id="custom-server-box" class="custom-server-box hidden">
             <label>Adresa centrálního serveru (Render):</label>
             <input type="text" id="custom-server-url" placeholder="https://sluthherio.onrender.com">
@@ -93,9 +126,8 @@
           <div id="mmo-status" class="status-msg hidden"></div>
 
           <div class="instructions">
-            <div>🌍 <b>Jeden společný server pro všechny!</b></div>
-            <div>Žádní boti — pouze reální hráči bojující v jedné aréně.</div>
-            <div>🕹️ <b>Ovládání:</b> Myš = Směr | Levé tlačítko / Mezerník = Zrychlení</div>
+            <div>🛡️ <b>Týmový mód (Duos):</b> S parťákem se <b>nemůžete navzájem zabít</b>!</div>
+            <div>🎯 Na obrazovce uvidíte <b>kompas k parťákovi</b> i po smrti možnost <b>respawnu u něj</b>.</div>
           </div>
         </div>
 
@@ -140,7 +172,7 @@
       </div>
     </div>
 
-    <!-- Game Over Screen -->
+    <!-- Game Over Screen with Duo Respawn -->
     <div id="gameover-overlay" class="hidden">
       <div class="menu-card gameover-card">
         <h2 id="gameover-title">💥 PRASKNUL JSI!</h2>
@@ -149,7 +181,11 @@
           <span id="final-score-label">Konečná délka:</span>
           <span id="final-score">0 cm</span>
         </div>
-        <button id="restart-btn" class="primary-btn">RESPAWN (HRÁT ZNOVU)</button>
+
+        <div class="gameover-buttons">
+          <button id="respawn-teammate-btn" class="primary-btn team-respawn-btn hidden">⚡ RESPAWN U PARŤÁKA</button>
+          <button id="restart-btn" class="primary-btn">RESPAWN (NÁHODNĚ)</button>
+        </div>
       </div>
     </div>
   </div>

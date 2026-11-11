@@ -1,6 +1,6 @@
 /**
  * SLUTTER.IO - Dedicated MMO Server & Solo Penis Battle Royale
- * With Network Interpolation (Zero-Stutter) and Radar Minimap with Names
+ * With Duo Co-op Team Mode, Teammate Compass, and Radar Minimap
  */
 
 // --- Audio Synthesizer (Web Audio API) ---
@@ -285,9 +285,9 @@ class Food {
   }
 }
 
-// --- Snake Class with Smooth Network Interpolation ---
+// --- Snake Class ---
 class PenisSnake {
-  constructor(name, x, y, skin, isPlayer = false, playerIndex = 1) {
+  constructor(name, x, y, skin, isPlayer = false, playerIndex = 1, team = null) {
     this.name = name;
     this.skin = skin;
     this.skinIdx = SKINS.indexOf(skin);
@@ -295,6 +295,7 @@ class PenisSnake {
 
     this.isPlayer = isPlayer;
     this.playerIndex = playerIndex;
+    this.team = team;
 
     this.x = x || 0;
     this.y = y || 0;
@@ -328,7 +329,6 @@ class PenisSnake {
     return Math.floor(12 + this.score * 0.65);
   }
 
-  // Smoothly blend remote positions at 60 FPS
   interpolateMMO(dt) {
     const lerpRate = 1.0 - Math.exp(-22.0 * dt);
 
@@ -511,12 +511,29 @@ class PenisSnake {
     }
   }
 
-  draw(ctx) {
+  draw(ctx, isMyTeammate = false) {
     if (this.dead || this.segments.length === 0) return;
 
     const radius = this.getRadius();
     const skin = this.skin;
     const len = this.segments.length;
+
+    // If Teammate, draw a special team halo around the snake
+    if (isMyTeammate) {
+      ctx.save();
+      ctx.strokeStyle = 'rgba(255, 209, 102, 0.45)';
+      ctx.lineWidth = radius * 2.6;
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+      ctx.beginPath();
+      for (let i = 0; i < len; i += 2) {
+        const p = this.segments[i];
+        if (i === 0) ctx.moveTo(p.x, p.y);
+        else ctx.lineTo(p.x, p.y);
+      }
+      ctx.stroke();
+      ctx.restore();
+    }
 
     // 1. BALLS / TESTICLES
     if (len > 3) {
@@ -538,8 +555,8 @@ class PenisSnake {
         ctx.shadowColor = 'rgba(0,0,0,0.25)';
         ctx.shadowBlur = 6;
         ctx.fillStyle = skin.ball;
-        ctx.strokeStyle = skin.outline;
-        ctx.lineWidth = 3;
+        ctx.strokeStyle = isMyTeammate ? '#ffd166' : skin.outline;
+        ctx.lineWidth = isMyTeammate ? 3.5 : 3;
 
         ctx.beginPath();
         ctx.arc(bx, by, ballRadius, 0, Math.PI * 2);
@@ -582,8 +599,8 @@ class PenisSnake {
 
       ctx.save();
       ctx.fillStyle = skin.body;
-      ctx.strokeStyle = skin.outline;
-      ctx.lineWidth = 3;
+      ctx.strokeStyle = isMyTeammate ? '#ffd166' : skin.outline;
+      ctx.lineWidth = isMyTeammate ? 3.5 : 3;
 
       ctx.beginPath();
       ctx.arc(seg.x, seg.y, segRad, 0, Math.PI * 2);
@@ -615,8 +632,8 @@ class PenisSnake {
 
     const glansRadius = radius * 1.28;
     ctx.fillStyle = skin.glans;
-    ctx.strokeStyle = skin.outline;
-    ctx.lineWidth = 3.5;
+    ctx.strokeStyle = isMyTeammate ? '#ffd166' : skin.outline;
+    ctx.lineWidth = isMyTeammate ? 4 : 3.5;
 
     ctx.beginPath();
     ctx.moveTo(-glansRadius * 0.3, -glansRadius * 0.95);
@@ -689,24 +706,29 @@ class PenisSnake {
 
     ctx.restore();
 
-    // Name tag
+    // Name tag above head
     ctx.save();
     ctx.font = 'bold 13px Nunito, sans-serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'bottom';
+
     if (this.isPlayer) {
       ctx.fillStyle = this.playerIndex === 2 ? '#ffd166' : '#06d6a0';
+    } else if (isMyTeammate) {
+      ctx.fillStyle = '#ffd166'; // Golden for teammate
     } else {
       ctx.fillStyle = '#ffffff';
     }
+
     ctx.shadowColor = '#000000';
     ctx.shadowBlur = 4;
-    ctx.fillText(this.name, head.x, head.y - radius * 1.5);
+    const tag = isMyTeammate ? `👑 ${this.name}` : this.name;
+    ctx.fillText(tag, head.x, head.y - radius * 1.5);
     ctx.restore();
   }
 }
 
-// --- Main Engine ---
+// --- Main Engine with Co-op Teams ---
 class Game {
   constructor() {
     this.canvas = document.getElementById('gameCanvas');
@@ -723,16 +745,25 @@ class Game {
     this.p1Cm = document.getElementById('p1-cm');
     this.p2HudName = document.getElementById('p2-hud-name');
     this.p2Cm = document.getElementById('p2-cm');
+    this.lbHeader = document.getElementById('lb-header');
     this.lbList = document.getElementById('lb-list');
     this.roomInfo = document.getElementById('room-info');
     this.fpsBadge = document.getElementById('fps-badge');
 
+    // Teammate Compass UI
+    this.teammateCompass = document.getElementById('teammate-compass');
+    this.compassArrow = document.getElementById('compass-arrow');
+    this.compassName = document.getElementById('compass-name');
+    this.compassDist = document.getElementById('compass-dist');
+
+    // Modals
     this.menuOverlay = document.getElementById('menu-overlay');
     this.gameoverOverlay = document.getElementById('gameover-overlay');
     this.gameoverTitle = document.getElementById('gameover-title');
     this.gameoverSubtitle = document.getElementById('gameover-subtitle');
     this.finalScore = document.getElementById('final-score');
     this.restartBtn = document.getElementById('restart-btn');
+    this.respawnTeammateBtn = document.getElementById('respawn-teammate-btn');
     this.soundBtn = document.getElementById('sound-btn');
 
     // Mode Inputs
@@ -743,6 +774,19 @@ class Game {
     this.mmoStatus = document.getElementById('mmo-status');
     this.customServerBox = document.getElementById('custom-server-box');
     this.customServerUrl = document.getElementById('custom-server-url');
+
+    // Team Controls
+    this.teamModeSolo = document.getElementById('team-mode-solo');
+    this.teamModeCoop = document.getElementById('team-mode-coop');
+    this.teamConfigPanel = document.getElementById('team-config-panel');
+    this.createTeamBtn = document.getElementById('create-team-btn');
+    this.joinTeamInput = document.getElementById('join-team-input');
+    this.teamCodeDisplay = document.getElementById('team-code-display');
+    this.teamCodeVal = document.getElementById('team-code-val');
+    this.copyTeamLinkBtn = document.getElementById('copy-team-link-btn');
+
+    this.isCoopMode = false;
+    this.teamCode = '';
 
     // Selected skins
     this.mmoSkinIdx = 0;
@@ -768,7 +812,6 @@ class Game {
     this.snakes = [];
     this.foods = [];
 
-    // Persistent Snake Entity Map for buttery smooth interpolation
     this.mmoSnakesMap = new Map();
 
     // Inputs
@@ -776,17 +819,77 @@ class Game {
     this.isMouseDown = false;
     this.p2Keys = { w: false, s: false, a: false, d: false, space: false };
 
-    // MMO WebSocket
+    // MMO WebSocket & Team state
     this.mmoWs = null;
     this.myPlayerId = null;
+    this.myTeam = null;
+    this.teammate = null;
     this.remoteCam = null;
 
     this.initTabs();
     this.initSkinSelectors();
+    this.initTeamControls();
     this.initFpsLimiter();
     this.bindEvents();
     this.resize();
     this.checkIfCustomServerNeeded();
+    this.checkUrlForTeam();
+  }
+
+  initTeamControls() {
+    this.teamModeSolo.addEventListener('click', () => {
+      this.isCoopMode = false;
+      this.teamModeSolo.classList.add('active');
+      this.teamModeCoop.classList.remove('active');
+      this.teamConfigPanel.classList.add('hidden');
+    });
+
+    this.teamModeCoop.addEventListener('click', () => {
+      this.isCoopMode = true;
+      this.teamModeCoop.classList.add('active');
+      this.teamModeSolo.classList.remove('active');
+      this.teamConfigPanel.classList.remove('hidden');
+      if (!this.teamCode) {
+        this.generateTeamCode();
+      }
+    });
+
+    this.createTeamBtn.addEventListener('click', () => {
+      this.generateTeamCode();
+    });
+
+    this.joinTeamInput.addEventListener('input', () => {
+      const clean = this.joinTeamInput.value.trim().toUpperCase().replace(/[^A-Z0-9]/g, '');
+      this.teamCode = clean;
+    });
+
+    this.copyTeamLinkBtn.addEventListener('click', () => {
+      const url = `${window.location.origin}${window.location.pathname}?team=${this.teamCode}`;
+      navigator.clipboard.writeText(url).then(() => {
+        this.copyTeamLinkBtn.textContent = '✅ Odkaz zkopírován!';
+        setTimeout(() => this.copyTeamLinkBtn.textContent = '📋 Kopírovat odkaz pro parťáka', 2000);
+      });
+    });
+  }
+
+  generateTeamCode() {
+    this.teamCode = String(Math.floor(1000 + Math.random() * 9000));
+    this.teamCodeVal.textContent = this.teamCode;
+    this.joinTeamInput.value = this.teamCode;
+    this.teamCodeDisplay.classList.remove('hidden');
+  }
+
+  checkUrlForTeam() {
+    const params = new URLSearchParams(window.location.search);
+    const team = params.get('team');
+    if (team) {
+      this.isCoopMode = true;
+      this.teamModeCoop.click();
+      this.teamCode = team.trim().toUpperCase();
+      this.teamCodeVal.textContent = this.teamCode;
+      this.joinTeamInput.value = this.teamCode;
+      this.teamCodeDisplay.classList.remove('hidden');
+    }
   }
 
   initFpsLimiter() {
@@ -1016,7 +1119,7 @@ class Game {
       this.gameoverOverlay.classList.add('hidden');
       if (this.currentMode === 'mmo') {
         if (this.mmoWs && this.mmoWs.readyState === WebSocket.OPEN) {
-          this.mmoWs.send(JSON.stringify({ type: 'respawn' }));
+          this.mmoWs.send(JSON.stringify({ type: 'respawn', nearTeammate: false }));
         } else {
           this.startMMO();
         }
@@ -1024,6 +1127,13 @@ class Game {
         this.startLocal2P();
       } else {
         this.startSolo();
+      }
+    });
+
+    this.respawnTeammateBtn.addEventListener('click', () => {
+      this.gameoverOverlay.classList.add('hidden');
+      if (this.mmoWs && this.mmoWs.readyState === WebSocket.OPEN) {
+        this.mmoWs.send(JSON.stringify({ type: 'respawn', nearTeammate: true }));
       }
     });
 
@@ -1047,15 +1157,16 @@ class Game {
     }
   }
 
-  // --- DEDICATED MMO MODE ---
+  // --- DEDICATED MMO MODE WITH DUO CO-OP ---
   startMMO() {
     this.currentMode = 'mmo';
     const nick = this.mmoNick.value.trim() || 'SuperKláda';
     const skin = this.mmoSkinIdx;
+    const team = this.isCoopMode ? (this.teamCode || 'DUO') : null;
 
     this.mmoStatus.classList.remove('hidden');
     this.mmoStatus.className = 'status-msg status-info';
-    this.mmoStatus.textContent = '🔄 Připojuji se k centrálnímu serveru...';
+    this.mmoStatus.textContent = team ? `🔄 Připojuji se do týmu ${team}...` : '🔄 Připojuji se k serveru...';
 
     let wsUrl = '';
     const customUrl = this.customServerUrl.value.trim();
@@ -1089,7 +1200,8 @@ class Game {
       this.mmoWs.send(JSON.stringify({
         type: 'join',
         name: nick,
-        skin: skin
+        skin: skin,
+        team: team
       }));
     };
 
@@ -1098,13 +1210,20 @@ class Game {
         const msg = JSON.parse(event.data);
         if (msg.type === 'joined') {
           this.myPlayerId = msg.myId;
+          this.myTeam = msg.myTeam;
+
           this.menuOverlay.classList.add('hidden');
           this.gameoverOverlay.classList.add('hidden');
           this.hud.classList.remove('hidden');
           this.scoreBox.classList.remove('hidden');
           this.scores2p.classList.add('hidden');
           this.roomInfo.classList.remove('hidden');
-          this.roomInfo.textContent = '🌍 Živý server (Online)';
+
+          if (this.myTeam && !this.myTeam.startsWith('SOLO_')) {
+            this.roomInfo.textContent = `🤝 TÝM [${this.myTeam}]`;
+          } else {
+            this.roomInfo.textContent = '🌍 Sólo aréna';
+          }
 
           this.lastTime = performance.now();
           this.lastRenderTime = performance.now();
@@ -1128,6 +1247,7 @@ class Game {
         alert('Spojení se serverem bylo ukončeno.');
         this.menuOverlay.classList.remove('hidden');
         this.hud.classList.add('hidden');
+        this.teammateCompass.classList.add('hidden');
         this.isRunning = false;
       }
     };
@@ -1145,6 +1265,8 @@ class Game {
 
   handleWorldSnapshot(data) {
     this.remoteCam = data.cam;
+    this.myTeam = data.myTeam;
+    this.teammate = data.teammate;
 
     if (data.myScore != null) {
       const cm = (10 + data.myScore * 0.16).toFixed(1);
@@ -1157,25 +1279,44 @@ class Game {
       sounds.playDeath();
       const cm = (10 + (data.myScore || 0) * 0.16).toFixed(1);
       this.finalScore.textContent = `${cm} cm`;
+
+      // Check if teammate is alive for Duo Respawn
+      if (this.teammate && !this.teammate.dead) {
+        this.respawnTeammateBtn.classList.remove('hidden');
+        this.respawnTeammateBtn.textContent = `⚡ RESPAWN U ${this.teammate.name.toUpperCase()}`;
+      } else {
+        this.respawnTeammateBtn.classList.add('hidden');
+      }
+
       this.gameoverOverlay.classList.remove('hidden');
     } else if (!data.isDead) {
       this.wasDead = false;
     }
 
-    // Leaderboard
-    if (data.lb) {
+    // Team Leaderboard
+    if (data.teamsLb) {
       this.lbList.innerHTML = '';
-      data.lb.forEach((item, idx) => {
+      this.lbHeader.textContent = '🏆 Žebříček týmů';
+
+      data.teamsLb.forEach((teamObj, idx) => {
         const li = document.createElement('li');
-        if (item[2] === this.myPlayerId) li.classList.add('me');
+        const isMyTeam = (teamObj.teamCode === this.myTeam);
+        if (isMyTeam) li.classList.add('team-me');
 
         const nameSpan = document.createElement('span');
         nameSpan.className = 'lb-name';
-        nameSpan.textContent = `${idx + 1}. ${item[0]}`;
+
+        if (teamObj.isSolo) {
+          const m = teamObj.members[0];
+          nameSpan.textContent = `${idx + 1}. ${m ? m[0] : 'Hráč'}`;
+        } else {
+          const names = teamObj.members.map(m => m[0]).join(' + ');
+          nameSpan.textContent = `${idx + 1}. 🤝 ${names}`;
+        }
 
         const scoreSpan = document.createElement('span');
         scoreSpan.className = 'lb-score';
-        scoreSpan.textContent = `${(10 + item[1] * 0.16).toFixed(0)}cm`;
+        scoreSpan.textContent = `${(10 + teamObj.totalScore * 0.16).toFixed(0)}cm`;
 
         li.appendChild(nameSpan);
         li.appendChild(scoreSpan);
@@ -1186,7 +1327,7 @@ class Game {
     // Process foods
     this.foods = (data.foods || []).map(f => new Food(f[0], f[1], f[2], f[3] === 1, f[4]));
 
-    // Entity Map Update for Smooth 60 FPS Interpolation
+    // Entity Map Update
     const currentPids = new Set();
     const updatedSnakes = [];
 
@@ -1199,13 +1340,13 @@ class Game {
 
       if (!sn) {
         const skin = SKINS[s.skin] || SKINS[0];
-        sn = new PenisSnake(s.name, headPos[0], headPos[1], skin, isMe, isMe ? 1 : 0);
+        sn = new PenisSnake(s.name, headPos[0], headPos[1], skin, isMe, isMe ? 1 : 0, s.team);
         sn.id = s.id;
         sn.segments = s.segs.map(pt => ({ x: pt[0], y: pt[1] }));
         this.mmoSnakesMap.set(s.id, sn);
       }
 
-      // Store authoritative server targets
+      sn.team = s.team;
       sn.serverX = headPos[0];
       sn.serverY = headPos[1];
       sn.serverAngle = s.angle;
@@ -1213,14 +1354,12 @@ class Game {
       sn.isBoosting = s.boost;
       sn.serverSegments = s.segs.map(pt => ({ x: pt[0], y: pt[1] }));
 
-      // Explicitly set coordinates so minimap draws exact positions!
       sn.x = headPos[0];
       sn.y = headPos[1];
 
       updatedSnakes.push(sn);
     });
 
-    // Cleanup disconnected snakes
     for (let [pid] of this.mmoSnakesMap) {
       if (!currentPids.has(pid)) {
         this.mmoSnakesMap.delete(pid);
@@ -1228,6 +1367,57 @@ class Game {
     }
 
     this.snakes = updatedSnakes;
+
+    // Update Teammate Compass Indicator
+    this.updateTeammateCompass();
+  }
+
+  updateTeammateCompass() {
+    if (!this.teammate || this.teammate.dead || !this.remoteCam) {
+      this.teammateCompass.classList.add('hidden');
+      return;
+    }
+
+    const myX = this.remoteCam.x;
+    const myY = this.remoteCam.y;
+    const tmX = this.teammate.x;
+    const tmY = this.teammate.y;
+
+    const dx = tmX - myX;
+    const dy = tmY - myY;
+    const distMeters = Math.round(Math.hypot(dx, dy) / 10);
+
+    // Screen coordinates of teammate
+    const screenX = this.width / 2 + dx * this.camera.zoom;
+    const screenY = this.height / 2 + dy * this.camera.zoom;
+    const margin = 80;
+
+    const isOffScreen = screenX < margin || screenX > this.width - margin || screenY < margin || screenY > this.height - margin;
+
+    if (isOffScreen) {
+      this.teammateCompass.classList.remove('hidden');
+
+      // Clamp compass badge to edge of screen
+      const angle = Math.atan2(dy, dx);
+      const edgeRadiusX = (this.width / 2) - margin;
+      const edgeRadiusY = (this.height / 2) - margin;
+
+      // Project onto ellipse border
+      const posX = this.width / 2 + Math.cos(angle) * edgeRadiusX;
+      const posY = this.height / 2 + Math.sin(angle) * edgeRadiusY;
+
+      this.teammateCompass.style.left = `${posX}px`;
+      this.teammateCompass.style.top = `${posY}px`;
+
+      // Rotate arrow to point directly at teammate
+      const deg = (angle * 180 / Math.PI) - 90;
+      this.compassArrow.style.transform = `rotate(${deg}deg)`;
+
+      this.compassName.textContent = this.teammate.name;
+      this.compassDist.textContent = `${distMeters} m`;
+    } else {
+      this.teammateCompass.classList.add('hidden');
+    }
   }
 
   loopMMO() {
@@ -1235,7 +1425,6 @@ class Game {
 
     const now = performance.now();
 
-    // High precision pacing limiter (only throttle if requested)
     if (this.targetFps > 0 && this.targetFps < 120) {
       const frameInterval = 1000 / this.targetFps;
       const elapsed = now - this.lastRenderTime;
@@ -1254,7 +1443,6 @@ class Game {
 
     this.updateFpsMetrics(now);
 
-    // Smooth 60 FPS entity interpolation (eliminates 25Hz stepping jitter)
     for (let sn of this.snakes) {
       sn.interpolateMMO(dt);
     }
@@ -1277,7 +1465,7 @@ class Game {
     requestAnimationFrame(() => this.loopMMO());
   }
 
-  // --- SOLO & LOCAL 2P (OFFLINE) ---
+  // --- SOLO & LOCAL 2P ---
   spawnInitialFood() {
     this.foods = [];
     for (let i = 0; i < MAX_FOOD; i++) {
@@ -1335,6 +1523,8 @@ class Game {
     this.scores2p.classList.add('hidden');
     this.roomInfo.classList.remove('hidden');
     this.roomInfo.textContent = '🤖 Trénink s boty';
+    this.teammateCompass.classList.add('hidden');
+    this.respawnTeammateBtn.classList.add('hidden');
 
     this.menuOverlay.classList.add('hidden');
     this.gameoverOverlay.classList.add('hidden');
@@ -1369,6 +1559,8 @@ class Game {
     this.p1HudName.textContent = this.player1.name + ':';
     this.p2HudName.textContent = this.player2.name + ':';
     this.roomInfo.classList.add('hidden');
+    this.teammateCompass.classList.add('hidden');
+    this.respawnTeammateBtn.classList.add('hidden');
 
     this.menuOverlay.classList.add('hidden');
     this.gameoverOverlay.classList.add('hidden');
@@ -1503,6 +1695,7 @@ class Game {
     // Leaderboard
     const sorted = [...this.snakes].sort((a, b) => b.score - a.score).slice(0, 8);
     this.lbList.innerHTML = '';
+    this.lbHeader.textContent = '🏆 Žebříček největších';
     sorted.forEach((s, idx) => {
       const li = document.createElement('li');
       if (s.isPlayer) li.classList.add(s.playerIndex === 2 ? 'p2' : 'me');
@@ -1516,7 +1709,7 @@ class Game {
     requestAnimationFrame(() => this.loopLocal());
   }
 
-  // --- RADAR MINIMAP (Shows all friends with names and distinct markers) ---
+  // --- RADAR MINIMAP (Shows all friends, teammates with Crown and names) ---
   drawMinimap() {
     const mCtx = this.miniCtx;
     const w = this.minimapCanvas.width;
@@ -1534,21 +1727,18 @@ class Game {
     mCtx.arc(cx, cy, mapRadius, 0, Math.PI * 2);
     mCtx.fill();
 
-    // Radar Grid Rings
     mCtx.strokeStyle = 'rgba(255, 77, 148, 0.2)';
     mCtx.lineWidth = 1;
     mCtx.beginPath();
     mCtx.arc(cx, cy, mapRadius * 0.5, 0, Math.PI * 2);
     mCtx.stroke();
 
-    // Radar Arena Border
     mCtx.strokeStyle = '#ff3366';
     mCtx.lineWidth = 2.5;
     mCtx.beginPath();
     mCtx.arc(cx, cy, mapRadius, 0, Math.PI * 2);
     mCtx.stroke();
 
-    // Crosshair lines
     mCtx.strokeStyle = 'rgba(255, 255, 255, 0.08)';
     mCtx.beginPath();
     mCtx.moveTo(cx, cy - mapRadius);
@@ -1557,22 +1747,20 @@ class Game {
     mCtx.lineTo(cx + mapRadius, cy);
     mCtx.stroke();
 
-    // Pulsing radar sweep effect
     const pulseTime = performance.now() * 0.003;
 
-    // Draw ALL players on minimap
     for (let s of this.snakes) {
       if (s.dead) continue;
 
-      // Extract accurate coordinates
       const head = (s.segments && s.segments.length > 0) ? s.segments[0] : { x: s.x, y: s.y };
       const mx = cx + head.x * scale;
       const my = cy + head.y * scale;
 
       const isMe = (this.currentMode === 'mmo' ? (s.id === this.myPlayerId) : s.isPlayer);
+      const isMyTeammate = (this.currentMode === 'mmo' && this.myTeam && s.team === this.myTeam && !isMe);
 
       if (isMe) {
-        // --- DRAW ME (Bright Neon Green with Pulsing Locator Ring) ---
+        // --- DRAW ME (Neon Green + Heading Pointer) ---
         const ringRad = 5.5 + Math.sin(pulseTime * 2) * 2.5;
         mCtx.strokeStyle = 'rgba(6, 214, 160, 0.7)';
         mCtx.lineWidth = 1.5;
@@ -1588,7 +1776,6 @@ class Game {
         mCtx.fill();
         mCtx.shadowBlur = 0;
 
-        // Heading pointer
         mCtx.strokeStyle = '#ffffff';
         mCtx.lineWidth = 2;
         mCtx.beginPath();
@@ -1596,26 +1783,50 @@ class Game {
         mCtx.lineTo(mx + Math.cos(s.angle) * 9, my + Math.sin(s.angle) * 9);
         mCtx.stroke();
 
-      } else {
-        // --- DRAW FRIEND / ENEMY (Prominent Marker with Player Name) ---
-        const friendColor = s.skin ? s.skin.glans : '#ff99c8';
+      } else if (isMyTeammate) {
+        // --- DRAW TEAMMATE (Bright Golden Crown/Star + Name) ---
+        const teamRingRad = 6.0 + Math.sin(pulseTime * 2.5) * 3.0;
+        mCtx.strokeStyle = '#ffd166';
+        mCtx.lineWidth = 2;
+        mCtx.beginPath();
+        mCtx.arc(mx, my, teamRingRad, 0, Math.PI * 2);
+        mCtx.stroke();
 
-        // Outer glow dot
-        mCtx.fillStyle = friendColor;
-        mCtx.shadowColor = friendColor;
+        mCtx.fillStyle = '#ffd166';
+        mCtx.shadowColor = '#ffd166';
+        mCtx.shadowBlur = 10;
+        mCtx.beginPath();
+        mCtx.arc(mx, my, 5.5, 0, Math.PI * 2);
+        mCtx.fill();
+        mCtx.shadowBlur = 0;
+
+        mCtx.save();
+        mCtx.font = 'bold 10px Fredoka One, cursive';
+        mCtx.fillStyle = '#ffd166';
+        mCtx.textAlign = 'center';
+        mCtx.textBaseline = 'bottom';
+        mCtx.shadowColor = '#000000';
+        mCtx.shadowBlur = 4;
+        mCtx.fillText(`👑 ${s.name}`, mx, my - 6);
+        mCtx.restore();
+
+      } else {
+        // --- DRAW OTHER PLAYERS ---
+        const color = s.skin ? s.skin.glans : '#ff99c8';
+
+        mCtx.fillStyle = color;
+        mCtx.shadowColor = color;
         mCtx.shadowBlur = 6;
         mCtx.beginPath();
         mCtx.arc(mx, my, 4.2, 0, Math.PI * 2);
         mCtx.fill();
         mCtx.shadowBlur = 0;
 
-        // White center point
         mCtx.fillStyle = '#ffffff';
         mCtx.beginPath();
         mCtx.arc(mx, my, 1.8, 0, Math.PI * 2);
         mCtx.fill();
 
-        // FRIEND'S NAME ON RADAR
         mCtx.save();
         mCtx.font = 'bold 9px Nunito, sans-serif';
         mCtx.fillStyle = '#ffffff';
@@ -1695,7 +1906,8 @@ class Game {
     });
 
     for (let s of renderOrder) {
-      s.draw(this.ctx);
+      const isMyTeammate = (this.currentMode === 'mmo' && this.myTeam && s.team === this.myTeam && s.id !== this.myPlayerId);
+      s.draw(this.ctx, isMyTeammate);
     }
 
     this.ctx.restore();

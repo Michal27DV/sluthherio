@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-SLUTTER.IO - Vysokorychlostní MMO Server s optimalizací sítě a delta time
+SLUTTER.IO - Dedicated MMO Server s podporou DUO TÝMŮ (Co-op 2 hráči)
 Spuštění: python3 server.py
 """
 
@@ -25,7 +25,7 @@ BASE_SPEED = 235.0  # units per sec
 BOOST_SPEED = 460.0 # units per sec
 INITIAL_SCORE = 15
 MAX_FOOD = 700
-VIEW_DISTANCE = 1600 # View distance for food culling (reduces bandwidth by 90%)
+VIEW_DISTANCE = 1600
 
 def get_local_ip():
     try:
@@ -119,7 +119,7 @@ def ws_send_text(sock, text):
     except Exception:
         return False
 
-# --- Game Entities with Delta Time ---
+# --- Game Entities with Teams & Delta Time ---
 class ServerFood:
     __slots__ = ('x', 'y', 'value', 'is_sperm', 'color')
     def __init__(self, x, y, value=1.0, is_sperm=False, color=None):
@@ -130,10 +130,11 @@ class ServerFood:
         self.color = color or random.choice(['#ff4d94', '#ffd166', '#06d6a0', '#118ab2', '#ff99c8', '#ffffff'])
 
 class ServerPlayer:
-    def __init__(self, pid, name, skin_idx, sock):
+    def __init__(self, pid, name, skin_idx, team_code, sock):
         self.pid = pid
         self.name = (name or f"Hráč {pid}")[:14]
         self.skin_idx = int(skin_idx) if isinstance(skin_idx, (int, float)) else 0
+        self.team_code = str(team_code).strip().upper() if team_code else f"SOLO_{pid}"
         self.sock = sock
 
         angle = random.uniform(0, math.pi * 2)
@@ -151,12 +152,18 @@ class ServerPlayer:
         self.segments = [[self.x, self.y]]
         self.history = [[self.x, self.y]]
 
-    def respawn(self):
-        angle = random.uniform(0, math.pi * 2)
-        dist = math.sqrt(random.uniform(0, 0.7)) * (WORLD_RADIUS - 400)
-        self.x = math.cos(angle) * dist
-        self.y = math.sin(angle) * dist
-        self.angle = random.uniform(0, math.pi * 2)
+    def respawn(self, spawn_x=None, spawn_y=None, spawn_angle=None):
+        if spawn_x is not None and spawn_y is not None:
+            self.x = max(-WORLD_RADIUS + 100, min(WORLD_RADIUS - 100, spawn_x))
+            self.y = max(-WORLD_RADIUS + 100, min(WORLD_RADIUS - 100, spawn_y))
+            self.angle = spawn_angle if spawn_angle is not None else random.uniform(0, math.pi * 2)
+        else:
+            angle = random.uniform(0, math.pi * 2)
+            dist = math.sqrt(random.uniform(0, 0.7)) * (WORLD_RADIUS - 400)
+            self.x = math.cos(angle) * dist
+            self.y = math.sin(angle) * dist
+            self.angle = random.uniform(0, math.pi * 2)
+
         self.target_angle = self.angle
         self.score = INITIAL_SCORE
         self.is_boosting = False
@@ -178,7 +185,6 @@ class ServerPlayer:
         rad = self.get_radius()
         speed = BOOST_SPEED if (self.is_boosting and self.score > 8) else BASE_SPEED
 
-        # Steering
         diff = (self.target_angle - self.angle + math.pi) % (math.pi * 2) - math.pi
         turn_speed = 5.5 * dt
         if abs(diff) <= turn_speed:
@@ -186,7 +192,6 @@ class ServerPlayer:
         else:
             self.angle += math.copysign(turn_speed, diff)
 
-        # Move head
         dist_moved = speed * dt
         self.x += math.cos(self.angle) * dist_moved
         self.y += math.sin(self.angle) * dist_moved
@@ -276,11 +281,29 @@ class SlutterWorld:
                 is_sperm
             ))
 
-    def add_player(self, name, skin_idx, sock):
+    def add_player(self, name, skin_idx, team_code, sock):
         with self.lock:
             pid = self.next_pid
             self.next_pid += 1
-            p = ServerPlayer(pid, name, skin_idx, sock)
+
+            # Check if there is an active teammate already in this team
+            teammate = None
+            if team_code:
+                clean_team = str(team_code).strip().upper()
+                for other in self.players.values():
+                    if other.team_code == clean_team and not other.dead:
+                        teammate = other
+                        break
+
+            p = ServerPlayer(pid, name, skin_idx, team_code, sock)
+
+            # Spawn near teammate if joining an active team!
+            if teammate:
+                spawn_dist = 180.0
+                spawn_x = teammate.x - math.cos(teammate.angle) * spawn_dist
+                spawn_y = teammate.y - math.sin(teammate.angle) * spawn_dist
+                p.respawn(spawn_x, spawn_y, teammate.angle)
+
             self.players[pid] = p
             return p
 
@@ -292,6 +315,25 @@ class SlutterWorld:
                 p.die(new_foods)
                 self.foods.extend(new_foods)
                 del self.players[pid]
+
+    def respawn_player(self, pid, near_teammate=False):
+        with self.lock:
+            if pid not in self.players:
+                return
+            p = self.players[pid]
+
+            spawn_x, spawn_y, spawn_angle = None, None, None
+            if near_teammate and p.team_code and not p.team_code.startswith("SOLO_"):
+                # Find alive teammate
+                for other in self.players.values():
+                    if other.pid != pid and other.team_code == p.team_code and not other.dead:
+                        spawn_dist = 180.0
+                        spawn_x = other.x - math.cos(other.angle) * spawn_dist
+                        spawn_y = other.y - math.sin(other.angle) * spawn_dist
+                        spawn_angle = other.angle
+                        break
+
+            p.respawn(spawn_x, spawn_y, spawn_angle)
 
     def game_loop(self):
         last_time = time.time()
@@ -324,7 +366,7 @@ class SlutterWorld:
                             surviving_foods.append(f)
                     self.foods = surviving_foods
 
-                # 3. Head-to-Body Collisions
+                # 3. Head-to-Body Collisions (WITH TEAM FRIENDLY-FIRE DISABLED!)
                 active_players = [p for p in self.players.values() if not p.dead]
                 for p1 in active_players:
                     if p1.dead: continue
@@ -332,6 +374,12 @@ class SlutterWorld:
 
                     for p2 in active_players:
                         if p1 is p2 or p2.dead: continue
+
+                        # --- TEAM FRIENDLY FIRE DISABLED! ---
+                        # If p1 and p2 are teammates, they CANNOT kill each other!
+                        if p1.team_code and p1.team_code == p2.team_code:
+                            continue
+
                         r2 = p2.get_radius()
                         kill_sq = (r1 * 0.85 + r2 * 0.72) ** 2
 
@@ -357,26 +405,36 @@ class SlutterWorld:
                         is_sperm
                     ))
 
-                # Broadcast snapshot with viewport culling
+                # Broadcast snapshot
                 self.broadcast_world()
 
             elapsed = time.time() - now
-            # Fixed target frame time: 40ms (~25 FPS server tick)
             sleep_time = max(0.002, 0.04 - elapsed)
             time.sleep(sleep_time)
 
     def broadcast_world(self):
-        # Build snakes data (always sent to everyone so minimap knows all player locations!)
         snakes_data = []
-        leaderboard = []
 
+        # Calculate Team Leaderboards
+        team_scores = {}
         for p in self.players.values():
-            leaderboard.append([p.name, round(p.score), p.pid])
+            t_key = p.team_code
+            if t_key not in team_scores:
+                team_scores[t_key] = {
+                    "teamCode": t_key,
+                    "isSolo": t_key.startswith("SOLO_"),
+                    "totalScore": 0,
+                    "members": []
+                }
+            team_scores[t_key]["totalScore"] += p.score
+            team_scores[t_key]["members"].append([p.name, round(p.score), p.pid])
+
             if not p.dead:
                 snakes_data.append({
                     "id": p.pid,
                     "name": p.name,
                     "skin": p.skin_idx,
+                    "team": p.team_code,
                     "x": round(p.x),
                     "y": round(p.y),
                     "angle": round(p.angle, 2),
@@ -385,10 +443,8 @@ class SlutterWorld:
                     "segs": [[round(pt[0]), round(pt[1])] for pt in p.segments]
                 })
 
-        leaderboard.sort(key=lambda x: x[1], reverse=True)
-        top_lb = leaderboard[:8]
+        sorted_teams = sorted(team_scores.values(), key=lambda t: t["totalScore"], reverse=True)[:8]
 
-        # Send culled foods per player to keep payload < 3KB per tick!
         view_sq = VIEW_DISTANCE * VIEW_DISTANCE
 
         for p in list(self.players.values()):
@@ -406,15 +462,33 @@ class SlutterWorld:
                         f.color
                     ])
 
+            # Find teammate information
+            teammate_info = None
+            if p.team_code and not p.team_code.startswith("SOLO_"):
+                for other in self.players.values():
+                    if other.pid != p.pid and other.team_code == p.team_code:
+                        teammate_info = {
+                            "id": other.pid,
+                            "name": other.name,
+                            "x": round(other.x),
+                            "y": round(other.y),
+                            "angle": round(other.angle, 2),
+                            "score": round(other.score, 1),
+                            "dead": other.dead
+                        }
+                        break
+
             payload = {
                 "type": "world",
                 "myId": p.pid,
+                "myTeam": p.team_code,
                 "myScore": round(p.score, 1),
                 "isDead": p.dead,
                 "cam": {"x": round(p.x), "y": round(p.y), "score": round(p.score, 1)},
+                "teammate": teammate_info,
                 "snakes": snakes_data,
                 "foods": nearby_foods,
-                "lb": top_lb
+                "teamsLb": sorted_teams
             }
             msg = json.dumps(payload)
             success = ws_send_text(p.sock, msg)
@@ -446,17 +520,20 @@ def handle_websocket_client(sock, headers):
                 if mtype == 'join':
                     name = msg.get('name', 'Hráč')
                     skin = msg.get('skin', 0)
-                    player = WORLD.add_player(name, skin, sock)
+                    team_code = msg.get('team', None)
+                    player = WORLD.add_player(name, skin, team_code, sock)
                     ws_send_text(sock, json.dumps({
                         "type": "joined",
                         "myId": player.pid,
+                        "myTeam": player.team_code,
                         "worldRadius": WORLD_RADIUS
                     }))
                 elif mtype == 'input' and player and not player.dead:
                     player.target_angle = float(msg.get('angle', player.angle))
                     player.is_boosting = bool(msg.get('boost', False))
                 elif mtype == 'respawn' and player:
-                    player.respawn()
+                    near_teammate = bool(msg.get('nearTeammate', False))
+                    WORLD.respawn_player(player.pid, near_teammate)
 
     except Exception:
         pass
@@ -503,12 +580,13 @@ def main():
 
     with ThreadedTCPServer(("", PORT), DualHTTPHandler) as httpd:
         print("=" * 64)
-        print("🍆 SLUTTER.IO SUPER-OPTIMALIZOVANÝ SERVER BĚŽÍ! 🎮")
+        print("🍆 SLUTTER.IO DUO CO-OP TÝMOVÝ SERVER BĚŽÍ! 🎮")
         print("=" * 64)
         print(f"👉 Lokální přístup:     http://localhost:{PORT}")
         print(f"👉 Přístup z Wi-Fi:     http://{local_ip}:{PORT}")
         print("=" * 64)
-        print("✨ Culling aktivní (90% úspora sítě) pro naprosto plynulý chod!")
+        print("🤝 TÝMY AKTIVNÍ: Hráči ve stejném týmu se NEMOHOU zabít!")
+        print("   Šipka k parťákovi + Respawn u parťáka + Týmový žebříček.")
         print("=" * 64)
         try:
             httpd.serve_forever()
