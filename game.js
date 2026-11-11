@@ -697,6 +697,7 @@ class Game {
 
     // Modals
     this.menuOverlay = document.getElementById('menu-overlay');
+    this.themeToggle = document.getElementById('theme-toggle');
     this.gameoverOverlay = document.getElementById('gameover-overlay');
     this.gameoverTitle = document.getElementById('gameover-title');
     this.gameoverSubtitle = document.getElementById('gameover-subtitle');
@@ -770,6 +771,7 @@ class Game {
     this.remoteCam = null;
 
     this.initTabs();
+    this.initTheme();
     this.initSkinSelectors();
     this.initTeamControls();
     this.initFpsLimiter();
@@ -897,6 +899,30 @@ class Game {
         document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
         document.getElementById(`tab-${mode}`).classList.remove('hidden');
       });
+    });
+  }
+
+  initTheme() {
+    let theme = 'light';
+    try {
+      theme = localStorage.getItem('knightslit-theme') === 'dark' ? 'dark' : 'light';
+    } catch (e) {}
+
+    const applyTheme = (nextTheme) => {
+      theme = nextTheme;
+      document.documentElement.dataset.theme = theme;
+      const dark = theme === 'dark';
+      this.themeToggle.querySelector('.theme-icon').textContent = dark ? '☀' : '☾';
+      this.themeToggle.querySelector('.theme-label').textContent = dark ? 'Světlý režim' : 'Tmavý režim';
+      this.themeToggle.setAttribute('aria-pressed', String(dark));
+      try {
+        localStorage.setItem('knightslit-theme', theme);
+      } catch (e) {}
+    };
+
+    applyTheme(theme);
+    this.themeToggle.addEventListener('click', () => {
+      applyTheme(theme === 'dark' ? 'light' : 'dark');
     });
   }
 

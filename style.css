@@ -1299,6 +1299,48 @@ html, body {
   }
 }
 
+/* Persistent light / dark appearance switch */
+.theme-toggle {
+  position: absolute; z-index: 5; top: 20px; right: 24px;
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 9px 14px; color: #4b4b55; background: rgba(255,255,255,.66);
+  border: 1px solid rgba(60,60,67,.12); border-radius: 999px;
+  box-shadow: 0 4px 14px rgba(30,32,55,.07), inset 0 1px rgba(255,255,255,.86);
+  backdrop-filter: blur(22px) saturate(155%); cursor: pointer;
+  font: 650 .82rem -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  transition: transform .18s ease, background .18s ease;
+}
+.theme-toggle:hover { transform: translateY(-1px); background: rgba(255,255,255,.9); }
+.theme-icon { color: #6256c8; font-size: 1.1rem; line-height: 1; }
+
+html[data-theme="dark"] body { color: #f5f5fa; background: #101116; }
+html[data-theme="dark"] #menu-overlay, html[data-theme="dark"] #gameover-overlay { background: rgba(7,8,15,.66); }
+html[data-theme="dark"] .menu-card { color: #f5f5fa; background: rgba(27,28,39,.82); border-color: rgba(255,255,255,.14); box-shadow: 0 24px 80px rgba(0,0,0,.42), inset 0 1px rgba(255,255,255,.14); }
+html[data-theme="dark"] .menu-card::before { color: #a9a6bb; }
+html[data-theme="dark"] .logo-knightslit { color: #f1efff; }
+html[data-theme="dark"] .logo-io { color: #a99df8; }
+html[data-theme="dark"] .tagline, html[data-theme="dark"] .gameover-card p { color: #b5b5c2; }
+html[data-theme="dark"] .mode-tab { color: #d0cfda; background: rgba(255,255,255,.055); border-color: rgba(255,255,255,.1); box-shadow: inset 0 1px rgba(255,255,255,.04); }
+html[data-theme="dark"] .mode-tab span { color: #a7a2c8; }
+html[data-theme="dark"] .mode-tab.active { color: #fff; background: linear-gradient(110deg,rgba(113,96,204,.68),rgba(50,117,188,.52)); border-color: rgba(184,174,255,.28); box-shadow: 0 8px 22px rgba(0,0,0,.24), inset 0 1px rgba(255,255,255,.16); }
+html[data-theme="dark"] .menu-card > .tab-content { border-color: rgba(255,255,255,.12); }
+html[data-theme="dark"] .input-group input, html[data-theme="dark"] input[type="text"] { color: #f4f3fa; background: rgba(13,14,23,.72); border-color: rgba(255,255,255,.13); box-shadow: inset 0 1px rgba(255,255,255,.04); }
+html[data-theme="dark"] .skin-selector label, html[data-theme="dark"] .team-selector-box label, html[data-theme="dark"] .fps-selector label { color: #bcb5f5; }
+html[data-theme="dark"] .team-selector-box, html[data-theme="dark"] .player-config-box, html[data-theme="dark"] .instructions, html[data-theme="dark"] .custom-server-box { color: #e7e6ef; background: rgba(255,255,255,.055); border-color: rgba(255,255,255,.1); box-shadow: inset 0 1px rgba(255,255,255,.05); }
+html[data-theme="dark"] .team-toggle-btn { color: #d8d7e3; background: rgba(255,255,255,.06); border-color: rgba(255,255,255,.13); }
+html[data-theme="dark"] .team-toggle-btn.active { color: #d6ceff; background: rgba(112,95,202,.2); border-color: rgba(177,162,255,.4); }
+html[data-theme="dark"] .team-lbl, html[data-theme="dark"] .team-or, html[data-theme="dark"] .player-config-box small, html[data-theme="dark"] .custom-server-box label { color: #aaa9b8; }
+html[data-theme="dark"] #score-box, html[data-theme="dark"] .score-badge, html[data-theme="dark"] #leaderboard, html[data-theme="dark"] #room-info, html[data-theme="dark"] #minimap-container, html[data-theme="dark"] #sound-btn, html[data-theme="dark"] #fps-badge, html[data-theme="dark"] #hud-menu-btn, html[data-theme="dark"] .teammate-compass { color: #f2f1f8; background: rgba(25,26,38,.78); border-color: rgba(255,255,255,.16); box-shadow: 0 8px 28px rgba(0,0,0,.28), inset 0 1px rgba(255,255,255,.11); }
+html[data-theme="dark"] #score-box .label, html[data-theme="dark"] #score-val, html[data-theme="dark"] .lb-title, html[data-theme="dark"] #lb-list .lb-score, html[data-theme="dark"] .compass-arrow, html[data-theme="dark"] .compass-dist { color: #c2b9ff; }
+html[data-theme="dark"] #lb-list li.me, html[data-theme="dark"] #lb-list li.p2, html[data-theme="dark"] #lb-list li.team-me { color: #c9c0ff !important; }
+html[data-theme="dark"] .final-score-box { color: #eeeef5; background: rgba(14,15,24,.7); border-color: rgba(255,255,255,.1); }
+html[data-theme="dark"] .gameover-card h2 { color: #c7bdff; }
+html[data-theme="dark"] .theme-toggle { color: #ebebf4; background: rgba(37,38,52,.8); border-color: rgba(255,255,255,.14); box-shadow: inset 0 1px rgba(255,255,255,.1); }
+html[data-theme="dark"] .theme-toggle:hover { background: rgba(52,53,70,.92); }
+html[data-theme="dark"] .theme-icon { color: #a99df8; }
+
+@media (max-width: 760px) { .theme-toggle { top: 12px; right: 14px; padding: 8px 11px; font-size: .75rem; } }
+
 /* Knightslit.io — clean iOS inspired interface */
 :root {
   --parchment: #1d1d1f;
