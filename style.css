@@ -1704,3 +1704,164 @@ html, body, button, input {
     background: #f7f7fb;
   }
 }
+
+/* Keep the start menu aligned independently on desktop and phones. */
+@media (min-width: 761px) {
+  #menu-overlay {
+    align-items: stretch;
+    justify-content: stretch;
+  }
+
+  #menu-overlay .menu-card {
+    width: 100%;
+    height: 100dvh;
+    min-height: 0;
+    padding: 82px max(40px, calc((100vw - 1120px) / 2)) 32px;
+    display: grid;
+    grid-template-columns: minmax(220px, 280px) minmax(0, 760px);
+    grid-template-rows: min-content min-content minmax(0, 1fr);
+    justify-content: center;
+    align-content: stretch;
+    align-items: stretch;
+    gap: 10px clamp(32px, 5vw, 72px);
+    overflow: hidden;
+    text-align: left;
+  }
+
+  #menu-overlay .menu-card .logo-title {
+    grid-column: 1 / -1;
+    grid-row: 1;
+    justify-self: center;
+    align-self: end;
+    order: initial;
+    font-size: clamp(3rem, 5vw, 4.25rem);
+    line-height: 1;
+  }
+
+  #menu-overlay .menu-card > .tagline {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    justify-self: center;
+    max-width: none;
+    margin: 0 0 14px;
+    order: initial;
+    text-align: center;
+  }
+
+  #menu-overlay .mode-tabs {
+    grid-column: 1;
+    grid-row: 3;
+    width: 100%;
+    align-self: start;
+    order: initial;
+  }
+
+  #menu-overlay .mode-tab {
+    justify-content: flex-start;
+    min-height: 58px;
+    padding: 12px 18px;
+    text-align: left;
+  }
+
+  #menu-overlay .menu-card > .tab-content {
+    grid-column: 2;
+    grid-row: 3;
+    align-self: stretch;
+    width: 100%;
+    max-height: none;
+    min-height: 0;
+    margin: 0;
+    padding: 8px 0 12px 28px;
+    overflow: auto;
+    border: 0;
+    border-left: 1px solid rgba(60, 60, 67, .12);
+    border-radius: 0;
+    order: initial;
+    text-align: left;
+    box-shadow: none;
+    background: transparent;
+    backdrop-filter: none;
+  }
+
+  html[data-theme="dark"] #menu-overlay .menu-card > .tab-content {
+    border-color: rgba(255, 255, 255, .13);
+    background: transparent;
+  }
+
+  #menu-overlay #tab-mmo { align-content: start; }
+}
+
+@media (max-width: 760px) {
+  #menu-overlay .menu-card {
+    width: 100%;
+    height: 100dvh;
+    min-height: 0;
+    padding: 62px 16px max(18px, env(safe-area-inset-bottom, 0px));
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: min-content min-content min-content minmax(0, 1fr);
+    justify-items: stretch;
+    align-content: stretch;
+    gap: 8px;
+    overflow: hidden;
+  }
+
+  #menu-overlay .menu-card .logo-title {
+    grid-column: 1;
+    grid-row: 1;
+    justify-self: center;
+    order: initial;
+  }
+
+  #menu-overlay .menu-card > .tagline {
+    grid-column: 1;
+    grid-row: 2;
+    justify-self: center;
+    max-width: 34rem;
+    margin: 0 0 4px;
+    order: initial;
+    text-align: center;
+  }
+
+  #menu-overlay .mode-tabs {
+    grid-column: 1;
+    grid-row: 3;
+    width: min(100%, 440px);
+    justify-self: center;
+    order: initial;
+  }
+
+  #menu-overlay .mode-tab {
+    min-width: 0;
+    min-height: 44px;
+    justify-content: center;
+    gap: 6px;
+    padding: 8px 6px;
+    text-align: center;
+    font-size: clamp(.68rem, 3.3vw, .8rem);
+  }
+
+  #menu-overlay .menu-card > .tab-content {
+    grid-column: 1;
+    grid-row: 4;
+    align-self: stretch;
+    width: 100%;
+    max-height: none;
+    min-height: 0;
+    margin: 0;
+    padding: 12px;
+    overflow: auto;
+    border: 1px solid rgba(60, 60, 67, .12);
+    border-radius: 16px;
+    order: initial;
+    text-align: left;
+  }
+
+  #menu-overlay #tab-mmo {
+    grid-template-columns: minmax(0, 1fr);
+    align-content: start;
+    gap: 12px;
+  }
+
+  #menu-overlay #tab-mmo > * { grid-column: 1 !important; }
+}
