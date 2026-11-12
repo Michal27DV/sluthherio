@@ -513,8 +513,102 @@ class Drake {
     }
   }
 
-  draw(ctx, isMyTeammate = false) {
-    this.drawLizard(ctx, isMyTeammate);
+  draw(ctx, isMyTeammate = false, appearance = 'lizard') {
+    if (appearance === 'classic') this.drawClassic(ctx, isMyTeammate);
+    else this.drawLizard(ctx, isMyTeammate);
+  }
+
+  drawClassic(ctx, isMyTeammate = false) {
+    if (this.dead || this.segments.length === 0) return;
+
+    const radius = this.getRadius();
+    const skin = this.skin;
+    const points = this.segments;
+    const outline = isMyTeammate ? '#6256c8' : skin.outline;
+
+    // Rounded body beads recreate the original playful snake silhouette.
+    for (let i = points.length - 1; i >= 1; i--) {
+      const point = points[i];
+      const taper = 0.84 + (1 - i / points.length) * 0.22;
+      const beadRadius = radius * taper;
+      ctx.fillStyle = skin.body;
+      ctx.strokeStyle = outline;
+      ctx.lineWidth = isMyTeammate ? 3 : 2.4;
+      ctx.beginPath();
+      ctx.arc(point.x, point.y, beadRadius, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+      if (i % 4 === 0) {
+        ctx.fillStyle = 'rgba(255,255,255,.3)';
+        ctx.beginPath();
+        ctx.arc(point.x - beadRadius * .28, point.y - beadRadius * .3, beadRadius * .2, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+
+    if (points.length > 3) {
+      const tail = points[points.length - 1];
+      const prev = points[points.length - 2];
+      const tailAngle = Math.atan2(tail.y - prev.y, tail.x - prev.x) + Math.PI / 2;
+      const offset = radius * .78;
+      for (const side of [-1, 1]) {
+        const bx = tail.x + Math.cos(tailAngle) * offset * side;
+        const by = tail.y + Math.sin(tailAngle) * offset * side;
+        ctx.fillStyle = skin.ball || skin.body;
+        ctx.strokeStyle = outline;
+        ctx.lineWidth = 2.2;
+        ctx.beginPath();
+        ctx.arc(bx, by, radius * .86, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+      }
+    }
+
+    const head = points[0];
+    ctx.save();
+    ctx.translate(head.x, head.y);
+    ctx.rotate(this.angle);
+    const r = radius * 1.2;
+    ctx.fillStyle = skin.glans;
+    ctx.strokeStyle = outline;
+    ctx.lineWidth = isMyTeammate ? 3.2 : 2.6;
+    ctx.beginPath();
+    ctx.moveTo(-r * .45, -r * .72);
+    ctx.bezierCurveTo(r * .1, -r * 1.12, r * .88, -r * .72, r * 1.1, 0);
+    ctx.bezierCurveTo(r * .88, r * .72, r * .1, r * 1.12, -r * .45, r * .72);
+    ctx.quadraticCurveTo(-r * .1, 0, -r * .45, -r * .72);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.fillStyle = '#fff';
+    for (const side of [-1, 1]) {
+      ctx.beginPath();
+      ctx.arc(r * .18, side * r * .43, r * .2, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#252233';
+      ctx.beginPath();
+      ctx.arc(r * .25, side * r * .43, r * .09, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#fff';
+    }
+    ctx.strokeStyle = outline;
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(r * .88, -r * .15);
+    ctx.lineTo(r * .88, r * .15);
+    ctx.stroke();
+    ctx.restore();
+
+    ctx.save();
+    ctx.font = '700 13px Nunito, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'bottom';
+    ctx.fillStyle = isMyTeammate ? '#6256c8' : '#f4f4fa';
+    ctx.shadowColor = '#151522';
+    ctx.shadowBlur = 5;
+    ctx.fillText(this.name, head.x, head.y - radius * 1.65);
+    ctx.restore();
   }
 
   drawLizard(ctx, isMyTeammate = false) {
@@ -698,6 +792,7 @@ class Game {
     // Modals
     this.menuOverlay = document.getElementById('menu-overlay');
     this.themeToggle = document.getElementById('theme-toggle');
+    this.appearanceToggle = document.getElementById('appearance-toggle');
     this.gameoverOverlay = document.getElementById('gameover-overlay');
     this.gameoverTitle = document.getElementById('gameover-title');
     this.gameoverSubtitle = document.getElementById('gameover-subtitle');
@@ -772,6 +867,7 @@ class Game {
 
     this.initTabs();
     this.initTheme();
+    this.initAppearance();
     this.initSkinSelectors();
     this.initTeamControls();
     this.initFpsLimiter();
@@ -923,6 +1019,29 @@ class Game {
     applyTheme(theme);
     this.themeToggle.addEventListener('click', () => {
       applyTheme(theme === 'dark' ? 'light' : 'dark');
+    });
+  }
+
+  initAppearance() {
+    this.appearanceStyle = 'lizard';
+    try {
+      this.appearanceStyle = localStorage.getItem('knightslit-appearance') === 'classic' ? 'classic' : 'lizard';
+    } catch (e) {}
+
+    const updateControl = () => {
+      const classic = this.appearanceStyle === 'classic';
+      this.appearanceToggle.querySelector('.appearance-icon').textContent = classic ? '🐍' : '🐉';
+      this.appearanceToggle.querySelector('.appearance-label').textContent = classic ? 'Ještěří vzhled' : 'Klasický vzhled';
+      this.appearanceToggle.setAttribute('aria-pressed', String(classic));
+    };
+
+    updateControl();
+    this.appearanceToggle.addEventListener('click', () => {
+      this.appearanceStyle = this.appearanceStyle === 'classic' ? 'lizard' : 'classic';
+      updateControl();
+      try {
+        localStorage.setItem('knightslit-appearance', this.appearanceStyle);
+      } catch (e) {}
     });
   }
 
@@ -1940,7 +2059,7 @@ class Game {
 
     for (let s of renderOrder) {
       const isMyTeammate = (this.currentMode === 'mmo' && this.myTeam && s.team === this.myTeam && s.id !== this.myPlayerId);
-      s.draw(this.ctx, isMyTeammate);
+      s.draw(this.ctx, isMyTeammate, this.appearanceStyle);
     }
 
     this.ctx.restore();
