@@ -1138,6 +1138,114 @@ body, button, input, .logo-title, .mode-tab, .primary-btn, .secondary-btn,
   .gameover-card { width: min(560px, 92vw); height: auto; padding: 30px 22px; }
 }
 
+/* Touch controls for iPhone and iPad browsers */
+#touch-controls { display: none; }
+
+@media (any-pointer: coarse) {
+  html, body, #game-container { height: 100%; height: 100dvh; }
+  #gameCanvas { touch-action: none; }
+  input[type="text"] { font-size: 16px !important; }
+  #touch-controls {
+    position: absolute;
+    inset: 0;
+    z-index: 20;
+    display: block;
+    pointer-events: none;
+    touch-action: none;
+    user-select: none;
+    -webkit-user-select: none;
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  .touch-stick {
+    position: absolute;
+    left: calc(22px + env(safe-area-inset-left, 0px));
+    bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+    width: 118px;
+    height: 138px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 6px;
+    color: rgba(255,255,255,.72);
+    font: 800 9px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    letter-spacing: .16em;
+    pointer-events: auto;
+    touch-action: none;
+  }
+  .stick-base {
+    width: 102px;
+    height: 102px;
+    display: grid;
+    place-items: center;
+    border: 1px solid rgba(255,255,255,.35);
+    border-radius: 50%;
+    background: rgba(25,26,38,.28);
+    box-shadow: inset 0 1px 12px rgba(255,255,255,.12), 0 8px 28px rgba(0,0,0,.14);
+    backdrop-filter: blur(12px);
+  }
+  .stick-knob {
+    width: 42px;
+    height: 42px;
+    border: 1px solid rgba(255,255,255,.58);
+    border-radius: 50%;
+    background: linear-gradient(145deg, rgba(167,151,255,.9), rgba(78,162,235,.82));
+    box-shadow: 0 4px 16px rgba(20,25,64,.24), inset 0 1px rgba(255,255,255,.5);
+    will-change: transform;
+  }
+  .touch-boost {
+    position: absolute;
+    right: calc(24px + env(safe-area-inset-right, 0px));
+    bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+    width: 78px;
+    height: 78px;
+    display: grid;
+    place-items: center;
+    padding: 0;
+    border: 1px solid rgba(255,255,255,.62);
+    border-radius: 50%;
+    color: #fff;
+    background: linear-gradient(145deg, rgba(137,102,224,.86), rgba(54,144,220,.84));
+    box-shadow: 0 8px 24px rgba(18,24,65,.3), inset 0 1px rgba(255,255,255,.48);
+    font: 800 10px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    letter-spacing: .08em;
+    pointer-events: auto;
+    touch-action: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .touch-boost:active { transform: scale(.94); filter: brightness(1.16); }
+  #touch-controls.duo #touch-stick-2 {
+    left: auto;
+    right: calc(22px + env(safe-area-inset-right, 0px));
+  }
+  #touch-controls.duo #touch-boost-1 {
+    right: auto;
+    left: calc(40px + env(safe-area-inset-left, 0px));
+    bottom: calc(160px + env(safe-area-inset-bottom, 0px));
+    width: 68px;
+    height: 68px;
+  }
+  #touch-controls.duo #touch-boost-2 {
+    right: calc(40px + env(safe-area-inset-right, 0px));
+    bottom: calc(160px + env(safe-area-inset-bottom, 0px));
+    width: 68px;
+    height: 68px;
+  }
+  #touch-controls.duo .touch-stick { bottom: calc(16px + env(safe-area-inset-bottom, 0px)); }
+  #score-box { bottom: calc(160px + env(safe-area-inset-bottom, 0px)); }
+  #scores-2p { top: calc(76px + env(safe-area-inset-top, 0px)); bottom: auto; left: 20px; }
+  #minimap-container { display: none; }
+
+  html[data-theme="light"] .stick-base, html[data-theme="light"] .touch-boost { border-color: rgba(255,255,255,.82); }
+  html[data-theme="dark"] .stick-base { background: rgba(15,16,29,.5); border-color: rgba(255,255,255,.24); }
+}
+
+@media (any-pointer: coarse) and (orientation: landscape) {
+  .touch-stick { transform: scale(.82); transform-origin: bottom left; }
+  #touch-controls.duo #touch-stick-2 { transform-origin: bottom right; }
+  #touch-controls.duo #touch-boost-1, #touch-controls.duo #touch-boost-2 { bottom: calc(152px + env(safe-area-inset-bottom, 0px)); }
+}
+
 /* Keep the in-game menu button clear of the changing FPS label. */
 #hud-menu-btn { left: 230px; }
 

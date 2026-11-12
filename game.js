@@ -857,6 +857,14 @@ class Game {
     this.mouse = { x: 0, y: 0 };
     this.isMouseDown = false;
     this.p2Keys = { w: false, s: false, a: false, d: false, space: false };
+    this.touchSticks = { 1: null, 2: null };
+    this.touchAngles = { 1: 0, 2: 0 };
+    this.touchBoosting = { 1: false, 2: false };
+    this.touchControls = document.getElementById('touch-controls');
+    this.touchStickElements = {
+      1: document.getElementById('touch-stick-1'),
+      2: document.getElementById('touch-stick-2')
+    };
 
     // MMO WebSocket & Team state
     this.mmoWs = null;
@@ -872,6 +880,7 @@ class Game {
     this.initTeamControls();
     this.initFpsLimiter();
     this.bindEvents();
+    this.initTouchControls();
     this.resize();
     this.checkIfCustomServerNeeded();
     this.checkUrlForTeam();
@@ -1070,14 +1079,21 @@ class Game {
   }
 
   resize() {
-    this.width = window.innerWidth;
-    this.height = window.innerHeight;
-    this.canvas.width = this.width;
-    this.canvas.height = this.height;
+    const viewport = window.visualViewport;
+    this.width = viewport ? viewport.width : window.innerWidth;
+    this.height = viewport ? viewport.height : window.innerHeight;
+    const pixelRatio = Math.min(window.devicePixelRatio || 1, 2);
+    this.canvas.width = Math.round(this.width * pixelRatio);
+    this.canvas.height = Math.round(this.height * pixelRatio);
+    this.canvas.style.width = `${this.width}px`;
+    this.canvas.style.height = `${this.height}px`;
+    this.ctx.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
   }
 
   bindEvents() {
     window.addEventListener('resize', () => this.resize());
+    window.visualViewport?.addEventListener('resize', () => this.resize());
+    window.addEventListener('orientationchange', () => setTimeout(() => this.resize(), 120));
 
     window.addEventListener('mousemove', e => {
       this.mouse.x = e.clientX;
@@ -1134,6 +1150,7 @@ class Game {
     window.addEventListener('keydown', e => {
       const code = e.code;
       if (code === 'Space') {
+        e.preventDefault();
         this.isMouseDown = true;
         if (this.currentMode === 'mmo') {
           const cx = this.width / 2;
@@ -1162,6 +1179,7 @@ class Game {
     window.addEventListener('keyup', e => {
       const code = e.code;
       if (code === 'Space') {
+        e.preventDefault();
         this.isMouseDown = false;
         if (this.currentMode === 'mmo') {
           const cx = this.width / 2;
@@ -1246,6 +1264,9 @@ class Game {
   returnToMenu() {
     this.isRunning = false;
     sounds.stopBoost();
+    this.setTouchControlsMode(false);
+    this.setTouchBoost(1, false);
+    this.setTouchBoost(2, false);
 
     if (this.mmoWs) {
       const ws = this.mmoWs;
@@ -1276,6 +1297,104 @@ class Game {
     }
   }
 
+  initTouchControls() {
+    Object.entries(this.touchStickElements).forEach(([playerId, stick]) => {
+      const player = Number(playerId);
+      const knob = stick.querySelector('.stick-knob');
+      const base = stick.querySelector('.stick-base');
+
+      stick.addEventListener('pointerdown', event => {
+        if (!this.isRunning || (player === 2 && this.currentMode !== 'local2p')) return;
+        event.preventDefault();
+        stick.setPointerCapture(event.pointerId);
+        this.touchSticks[player] = event.pointerId;
+        this.updateTouchStick(player, event, base, knob);
+      });
+
+      stick.addEventListener('pointermove', event => {
+        if (this.touchSticks[player] !== event.pointerId) return;
+        event.preventDefault();
+        this.updateTouchStick(player, event, base, knob);
+      });
+
+      const releaseStick = event => {
+        if (this.touchSticks[player] !== event.pointerId) return;
+        this.touchSticks[player] = null;
+        knob.style.transform = 'translate(0, 0)';
+      };
+      stick.addEventListener('pointerup', releaseStick);
+      stick.addEventListener('pointercancel', releaseStick);
+      stick.addEventListener('lostpointercapture', releaseStick);
+    });
+
+    document.querySelectorAll('.touch-boost').forEach(button => {
+      const player = Number(button.dataset.player);
+      const beginBoost = event => {
+        if (!this.isRunning || (player === 2 && this.currentMode !== 'local2p')) return;
+        event.preventDefault();
+        button.setPointerCapture(event.pointerId);
+        this.setTouchBoost(player, true);
+      };
+      const endBoost = event => {
+        if (button.hasPointerCapture(event.pointerId)) button.releasePointerCapture(event.pointerId);
+        this.setTouchBoost(player, false);
+      };
+      button.addEventListener('pointerdown', beginBoost);
+      button.addEventListener('pointerup', endBoost);
+      button.addEventListener('pointercancel', endBoost);
+      button.addEventListener('lostpointercapture', () => this.setTouchBoost(player, false));
+    });
+  }
+
+  updateTouchStick(player, event, base, knob) {
+    const rect = base.getBoundingClientRect();
+    const centerX = rect.left + rect.width / 2;
+    const centerY = rect.top + rect.height / 2;
+    let dx = event.clientX - centerX;
+    let dy = event.clientY - centerY;
+    const distance = Math.hypot(dx, dy);
+    const maxDistance = rect.width * .34;
+    if (distance > maxDistance) {
+      dx = dx / distance * maxDistance;
+      dy = dy / distance * maxDistance;
+    }
+    knob.style.transform = `translate(${dx}px, ${dy}px)`;
+    if (Math.hypot(dx, dy) < 5) return;
+
+    const angle = Math.atan2(dy, dx);
+    this.touchAngles[player] = angle;
+    if (player === 1) {
+      if (this.currentMode === 'mmo') {
+        this.sendMmoInput(angle, this.isMouseDown || this.touchBoosting[1]);
+      } else if (this.player1 && !this.player1.dead) {
+        this.player1.targetAngle = angle;
+      }
+    } else {
+      this.updateP2Heading();
+    }
+  }
+
+  setTouchBoost(player, boosting) {
+    this.touchBoosting[player] = boosting;
+    if (player === 1) {
+      if (this.currentMode === 'mmo') {
+        this.sendMmoInput(this.touchAngles[1], this.isMouseDown || boosting);
+      } else if (this.player1) {
+        this.player1.isBoosting = boosting;
+      }
+      if (boosting) sounds.startBoost();
+      else if (!this.isMouseDown) sounds.stopBoost();
+    } else if (this.player2) {
+      this.player2.isBoosting = boosting;
+    }
+  }
+
+  setTouchControlsMode(duoMode) {
+    this.touchControls.classList.toggle('duo', duoMode);
+    this.touchStickElements[2].classList.toggle('hidden', !duoMode);
+    document.getElementById('touch-boost-2').classList.toggle('hidden', !duoMode);
+  }
+
   updateP2Heading() {
     if (!this.player2 || this.player2.dead) return;
     let dx = 0;
@@ -1285,6 +1404,11 @@ class Game {
     if (this.p2Keys.a) dx -= 1;
     if (this.p2Keys.d) dx += 1;
 
+    if (this.touchSticks[2] !== null) {
+      this.player2.targetAngle = this.touchAngles[2];
+      return;
+    }
+
     if (dx !== 0 || dy !== 0) {
       this.player2.targetAngle = Math.atan2(dy, dx);
     }
@@ -1293,6 +1417,7 @@ class Game {
   // --- DEDICATED MMO MODE WITH DUO CO-OP ---
   startMMO() {
     this.currentMode = 'mmo';
+    this.setTouchControlsMode(false);
     const nick = this.mmoNick.value.trim() || 'Hráč';
     const skin = this.mmoSkinIdx;
     const team = this.isCoopMode ? (this.teamCode || 'DUO') : null;
@@ -1634,6 +1759,7 @@ class Game {
 
   startSolo() {
     this.currentMode = 'solo';
+    this.setTouchControlsMode(false);
     const nick = this.soloNick.value.trim() || 'Hráč';
     const skin = SKINS[this.soloSkinIdx];
 
@@ -1667,6 +1793,7 @@ class Game {
 
   startLocal2P() {
     this.currentMode = 'local2p';
+    this.setTouchControlsMode(true);
     const nick1 = this.p1Nick.value.trim() || 'Hráč 1';
     const nick2 = this.p2Nick.value.trim() || 'Hráč 2';
     const skin1 = SKINS[this.p1SkinIdx];

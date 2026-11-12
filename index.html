@@ -2,7 +2,7 @@
 <html lang="cs">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>Knightslit.io</title>
   <link rel="stylesheet" href="style.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -56,6 +56,19 @@
       <div id="fps-badge" title="Kliknutím přepneš FPS limit">60 FPS</div>
       <button id="hud-menu-btn" title="Odejít do menu">🏠 Menu</button>
       <div id="room-info" class="hidden"></div>
+
+      <div id="touch-controls" aria-label="Dotykové ovládání">
+        <div id="touch-stick-1" class="touch-stick" data-player="1" aria-label="Směr hráče 1">
+          <div class="stick-base"><div class="stick-knob"></div></div>
+          <span>SMĚR</span>
+        </div>
+        <button id="touch-boost-1" class="touch-boost" data-player="1" type="button">ZRYCHLIT</button>
+        <div id="touch-stick-2" class="touch-stick hidden" data-player="2" aria-label="Směr hráče 2">
+          <div class="stick-base"><div class="stick-knob"></div></div>
+          <span>SMĚR</span>
+        </div>
+        <button id="touch-boost-2" class="touch-boost hidden" data-player="2" type="button">ZRYCHLIT</button>
+      </div>
     </div>
 
     <!-- Start / Mode Selection Menu -->
@@ -147,13 +160,13 @@
               <h4>Hráč 1 · Myš</h4>
               <input type="text" id="p1-nick" placeholder="Jméno hráče 1" maxlength="12" value="Hráč 1">
               <div class="skin-options compact" id="p1-skins"></div>
-              <small>Ovládání: Myš + Levé tlačítko</small>
+              <small>Ovládání: Myš nebo dotykový ovladač</small>
             </div>
             <div class="player-config-box">
               <h4>Hráč 2 · Klávesnice</h4>
               <input type="text" id="p2-nick" placeholder="Jméno hráče 2" maxlength="12" value="Hráč 2">
               <div class="skin-options compact" id="p2-skins"></div>
-              <small>Ovládání: WASD + Mezerník</small>
+              <small>Ovládání: WASD + mezerník nebo druhý dotykový ovladač</small>
             </div>
           </div>
           <button id="start-local2p-btn" class="primary-btn">SPUSTIT HRU</button>
